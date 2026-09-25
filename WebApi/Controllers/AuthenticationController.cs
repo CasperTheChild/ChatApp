@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Application.DTOs.Auth;
-using Application.Services;
+using Application.IAM.Auth;
+using Application.IAM;
 
 namespace WebApi.Controllers;
 

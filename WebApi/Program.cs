@@ -1,23 +1,28 @@
-using Application.Services;
-using Application.Services.Interface;
+using Application.IAM;
+using Application.IAM.Services.Interface;
+using Domain.Conversation.Repository.Interfaces;
 using Infrastructure.Identity;
-using Infrastructure.Services;
+using Infrastructure.Persistence.Context;
+using Infrastructure.Persistence.Repositories;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IAuthenticationService, AuthService>();
+builder.Services.AddScoped<IMessageRepository, MessageRepository>();
+builder.Services.AddScoped<IConversationParticipantRepository, ConversationParticipantRepository>();
+builder.Services.AddScoped<IConversationRepository, ConversationRepository>();
 builder.Services.AddScoped<AuthenticationService>();
 
-builder.Services.AddDbContext<Infrastructure.Context.ContextDb>(options =>
+builder.Services.AddDbContext<ContextDb>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("ChatAppDb"));
 });
 
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
-    .AddEntityFrameworkStores<Infrastructure.Context.ContextDb>()
+    .AddEntityFrameworkStores<ContextDb>()
     .AddDefaultTokenProviders();
 
 builder.Services.Configure<IdentityOptions>(options =>
