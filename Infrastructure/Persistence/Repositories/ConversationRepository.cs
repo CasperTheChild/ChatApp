@@ -14,41 +14,23 @@ public class ConversationRepository : IConversationRepository
         this.context = context;
     }
 
-    public void CreateConversation(Conversation conversation)
+    public void AddAsync(Conversation conversation)
     {
-        context.Conversations.Add(conversation);
+        throw new NotImplementedException();
     }
 
-    public async Task DeleteConversationAsync(int conversationId)
+    public Task<IEnumerable<Conversation>> GetAllForUserAsync(string UserId)
     {
-        var entity = await context.Conversations.FindAsync(conversationId);
-
-        if (entity != null)
-        {
-            context.Conversations.Remove(entity);
-        }
+        throw new NotImplementedException();
     }
 
-    public async Task<IEnumerable<Conversation>> GetAllConversationsAsync(string UserId)
+    public Task<Conversation?> GetByIdAsync(int conversationId)
     {
-        return await context.Conversations
-            .Where(c => c.Participants.Any(p => p.UserId == UserId))
-            .ToListAsync();
+        throw new NotImplementedException();
     }
 
-    public async Task<Conversation?> GetConversationByIdAsync(int conversationId)
+    public Task UpdateAsync(Conversation conversation)
     {
-        return await context.Conversations.FindAsync(conversationId);     
-    }
-
-    public async Task UpdateConversationAsync(int id, Conversation conversation)
-    {
-        var existingConversation = await context.Conversations.FindAsync(id);
-        if (existingConversation != null)
-        {
-            // add logic to update the existing conversation with the new data from the provided conversation entity
-
-            context.Conversations.Update(existingConversation);
-        }
+        throw new NotImplementedException();
     }
 }
