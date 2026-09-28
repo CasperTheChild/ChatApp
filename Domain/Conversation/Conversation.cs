@@ -2,62 +2,118 @@
 
 public class Conversation
 {
-    public ConversationId ConversationId { get; set; }
+    public ConversationId ConversationId { get; }
 
-    public ConversationType ConversationType { get; set; }
+    public DateTime CreatedAt { get; }
 
-    public DateTime CreatedAt { get; set; }
+    private readonly List<Participant> participants = new();
 
-    public List<Message> Messages { get; set; }
+    public IReadOnlyList<Participant> Participants => participants;
 
-    public string Title { get; set; }
+    // Non empty
+    public string Title { get; private set; }
 
-    public string Description { get; set; }
+    // Can be empty
+    public string Description { get; private set; }
 
-    public Conversation(
-        ConversationId ConversationId,
-        ConversationType ConversationType,
-        DateTime CreatedAt,
-        List<Message> Messages,
-        string Title,
-        string Description)
+    private Conversation(
+        string userId,
+        string title,
+        string description = "")
     {
-        this.ConversationId = ConversationId;
-        this.ConversationType = ConversationType;
-        this.CreatedAt = CreatedAt;
-        this.Messages = Messages;
-        this.Title = Title;
-        this.Description = Description;
+        if (string.IsNullOrWhiteSpace(userId))
+            throw new ArgumentException(
+                "UserId can not be empty", 
+                nameof(userId));
+
+        if (string.IsNullOrWhiteSpace(title))
+            throw new ArgumentException(
+                "Title can not be empty", 
+                nameof(title));
+
+        this.ConversationId = ConversationId.Generate();
+        this.CreatedAt = DateTime.UtcNow;
+        this.participants.Add(Participant.Create(userId));
+        this.Title = title;
+        this.Description = description;
     }
 
     // Domain methods
-    public bool CanSendMessage(string userId)
+    public static Conversation Create(
+        string userId, 
+        string title, 
+        string description)
+        => new Conversation(
+            userId, 
+            title, 
+            description);
+
+    public bool HasParticipant(string userId)
     {
-        throw new NotImplementedException();
+        if (string.IsNullOrWhiteSpace(userId))
+            throw new ArgumentException(
+                "UserId can not be empty", 
+                nameof(userId));
+
+        foreach(var participant in participants)
+        {
+            if (participant.UserId == userId)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
-    public void SendMessage(string userId, string text)
+    public void AddParticipant(string userId)
     {
-        throw new NotImplementedException();
+        if (string.IsNullOrWhiteSpace(userId))
+            throw new ArgumentException(
+                "UserId can not be empty", 
+                nameof(userId));
+
+        if (participants
+            .Any(p => p.UserId == userId))
+            throw new InvalidOperationException(
+                "User is already a participant!");
+
+        participants.Add(Participant.Create(userId));
     }
 
-    public void AddParticipant(Participant participant)
+    public void RemoveParticipant(string userId)
     {
-        throw new NotImplementedException();
-    }
+        if (string.IsNullOrWhiteSpace(userId))
+            throw new ArgumentException(
+                "UserId can not be empty", 
+                nameof(userId));
 
-    public void DeleteMessage(Message message)
-    {
-        throw new NotImplementedException();
+        var participant = participants
+            .FirstOrDefault(p => p.UserId == userId);
+
+        if (participant is null)
+            throw new InvalidOperationException(
+                "User is not a participant.");
+
+        participants.Remove(participant);
     }
 
     public void ChangeTitle(string title)
     {
-        throw new NotImplementedException();
+        if (string.IsNullOrWhiteSpace(title))
+            throw new ArgumentException(
+                "Title can not be empty", 
+                nameof(title));
+
+        Title = title;
     }
 
     public void ChangeDescription(string description)
     {
-        throw new NotImplementedException();
+        if (description is null)
+            throw new ArgumentNullException(
+                nameof(description));
+
+        Description = description;
     }
 }

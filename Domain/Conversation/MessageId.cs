@@ -1,14 +1,19 @@
 ﻿namespace Domain.Conversation;
 
-public class MessageId
+public record MessageId
 {
-    public Guid Id { get; set; }
+    public Guid Value { get; }
 
-    public MessageId Generate()
+    private MessageId(Guid value)
     {
-        return new MessageId()
-        {
-            Id = Guid.NewGuid(),
-        };
+        if (value == Guid.Empty)
+            throw new ArgumentException(
+                "Message Id can not be empty!",
+                nameof(value));
+
+        Value = value;
     }
+
+    public static MessageId Generate()
+        => new MessageId(Guid.NewGuid());
 }
