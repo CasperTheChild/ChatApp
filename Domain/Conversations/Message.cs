@@ -1,22 +1,45 @@
-﻿namespace Domain.Conversation;
+﻿namespace Domain.Conversations;
 
 public class Message
 {
-    public MessageId MessageId { get; }
+    public MessageId MessageId { get; private set; }
 
-    public string UserId {  get; }
+    public string UserId { get; private set; }
 
-    public ConversationId ConversationId { get; }
+    public ConversationId ConversationId { get; private set; }
 
     public string Content { get; private set; }
 
-    public DateTime CreatedAt { get; }
+    public DateTime CreatedAt { get; private set; }
 
     public DateTime LastUpdatedAt { get; private set; }
 
     public bool IsDeleted { get; private set; }
 
     // Constructurs
+    public Message(
+        MessageId messageId,
+        string userId,
+        ConversationId conversationId,
+        string content,
+        DateTime createdAt,
+        DateTime lastUpdatedAt,
+        bool isDeleted)
+    {
+        if (string.IsNullOrWhiteSpace(userId))
+            throw new ArgumentException("UserId can not be empty", nameof(userId));
+
+        if (string.IsNullOrWhiteSpace(content))
+            throw new ArgumentException("Content can not be empty", nameof(content));
+
+        MessageId = messageId;
+        UserId = userId;
+        ConversationId = conversationId;
+        Content = content;
+        CreatedAt = createdAt;
+        LastUpdatedAt = lastUpdatedAt;
+        IsDeleted = isDeleted;
+    }
 
     private Message(
         string userId,

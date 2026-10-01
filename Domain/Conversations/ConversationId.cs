@@ -1,4 +1,4 @@
-﻿namespace Domain.Conversation;
+﻿namespace Domain.Conversations;
 
 public record ConversationId
 {

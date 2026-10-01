@@ -1,10 +1,10 @@
-﻿namespace Domain.Conversation;
+﻿namespace Domain.Conversations;
 
 public record MessageId
 {
     public Guid Value { get; }
 
-    private MessageId(Guid value)
+    public MessageId(Guid value)
     {
         if (value == Guid.Empty)
             throw new ArgumentException(

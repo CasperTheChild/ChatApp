@@ -1,10 +1,10 @@
-﻿namespace Domain.Conversation;
+﻿namespace Domain.Conversations;
 
 public class Participant
 {
     public string UserId { get; }
 
-    private Participant(string userId)
+    public Participant(string userId)
     {
         if (string.IsNullOrWhiteSpace(userId))
             throw new ArgumentException(

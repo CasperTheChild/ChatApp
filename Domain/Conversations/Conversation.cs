@@ -1,4 +1,4 @@
-﻿namespace Domain.Conversation;
+﻿namespace Domain.Conversations;
 
 public class Conversation
 {
@@ -15,6 +15,29 @@ public class Conversation
 
     // Can be empty
     public string Description { get; private set; }
+
+    public Conversation(
+        ConversationId conversationId,
+        DateTime createdAt,
+        List<Participant> participants,
+        string title,
+        string description)
+    {
+        if (participants is null) 
+            throw new ArgumentNullException(nameof(participants));
+
+        if (title is null)
+            throw new ArgumentNullException(nameof(title));
+
+        if (description is null)
+            throw new ArgumentNullException(nameof(description));
+
+        ConversationId = conversationId;
+        CreatedAt = createdAt;
+        Title = title;
+        Description = description;
+        this.participants.AddRange(participants);
+    }
 
     private Conversation(
         string userId,

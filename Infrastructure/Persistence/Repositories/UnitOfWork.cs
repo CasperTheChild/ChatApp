@@ -14,6 +14,7 @@ public class UnitOfWork : IUnitOfWork
 
     public async Task SaveChangesAsync()
     {
-        await context.SaveChangesAsync();
+        var count = await context.SaveChangesAsync();
+        Console.WriteLine($"EF saved {count} entities.");
     }
 }
