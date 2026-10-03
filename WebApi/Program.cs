@@ -1,22 +1,32 @@
+using Application.Conversations;
 using Application.IAM;
 using Application.IAM.Services.Interface;
-using Domain.Conversation.Repository.Interfaces;
+using Application.Messages;
+using Domain.Common.Repository.Interfaces;
+using Domain.Conversations;
+using Infrastructure.Conversations.Repositories;
 using Infrastructure.Identity;
 using Infrastructure.Persistence.Context;
 using Infrastructure.Persistence.Repositories;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
+using WebApi.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddScoped<IAuthenticationService, AuthService>();
 builder.Services.AddScoped<IConversationRepository, ConversationRepository>();
+builder.Services.AddScoped<IMessageRepository, MessageRepository>();
 builder.Services.AddScoped<AuthenticationService>();
+builder.Services.AddScoped<CurrentUserService>();
+builder.Services.AddScoped<ConversationService>();
+builder.Services.AddScoped<MessageService>();
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 builder.Services.AddDbContext<ContextDb>(options =>
 {
-    options.UseSqlServer(builder.Configuration.GetConnectionString("ChatAppDb"));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("PostgreSql"));
 });
 
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
@@ -91,16 +101,22 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
+builder.Services.AddSignalR();
+
 var app = builder.Build();
 
-app.UseSwagger();
-app.UseSwaggerUI();
+app.UseRouting();
 
 app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.MapHub<ChatHub>("/hubs/chat");
+
 app.MapControllers();
+
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.Run();

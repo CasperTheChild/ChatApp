@@ -16,14 +16,14 @@ public class AuthenticationController : ControllerBase
     }
 
     [HttpPost("login")]
-    public async Task<IActionResult> Login([FromBody] LoginModel model)
+    public async Task<IActionResult> Login([FromBody] LoginDto model)
     {
         var token = await authenticationService.LoginAsync(model.UserName, model.Password);
         return Ok(token);
     }
 
     [HttpPost("register")]
-    public async Task<IActionResult> Register([FromBody] RegisterModel model)
+    public async Task<IActionResult> Register([FromBody] RegisterDto model)
     {
         var result = await authenticationService.RegisterAsync(model.UserName, model.Password);
         return Ok(result);
