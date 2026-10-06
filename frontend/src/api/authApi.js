@@ -21,7 +21,7 @@ export async function loginApi(username, password) {
         }
 
         const text = await response.json();
-        const token = text.token;
+        const token = text.accessToken;
 
         localStorage.setItem('token', token)
 

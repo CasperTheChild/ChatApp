@@ -7,6 +7,7 @@ export const UseAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ( { children }) => {
     const [token, setToken] = useState(localStorage.getItem("token"));
+    const [loggedIn, setLoggedIn] = useState(false);
 
     // useEffect(() => {
     //     const storedToken = localStorage.getItem("token");
@@ -20,6 +21,7 @@ export const AuthProvider = ( { children }) => {
         try {
             const data = await loginApi(username, password);
             setToken(data);
+            setLoggedIn(true);
         }
         catch (error) {
             console.error('Error during login:', error);
@@ -29,9 +31,11 @@ export const AuthProvider = ( { children }) => {
 
     const logout = () => {
         setToken(null);
+        localStorage.removeItem("token");
+        setLoggedIn(false);
     }
 
-    const register = (username, password, confirmPassword) => {
+    const register = async (username, password, confirmPassword) => {
         try {
             registerApi(username, password, confirmPassword);
         }
@@ -42,7 +46,7 @@ export const AuthProvider = ( { children }) => {
     }
 
     return (
-        <AuthContext.Provider value={{ token, login, logout, register }}>
+        <AuthContext.Provider value={{ token, loggedIn, login, logout, register }}>
             {children}
         </AuthContext.Provider>
     )

@@ -1,10 +1,15 @@
-import { useState } from 'react'
 import LoginPage from './pages/LoginPage/LoginPage'
+import ChatPage from './pages/ChatPage/ChatPage'
+import { UseAuth } from './contexts/AuthContext'
 
 function App() {
+  const { loggedIn } = UseAuth();
   return (
     <>
-      <LoginPage />
+      {!loggedIn &&
+        <LoginPage />}
+      {loggedIn &&
+        <ChatPage />}
     </>
   )
 }
