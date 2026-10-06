@@ -101,11 +101,24 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("ReactApp", policy =>
+    {
+        policy
+            .WithOrigins("http://localhost:5173")
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
+
 builder.Services.AddSignalR();
 
 var app = builder.Build();
 
 app.UseRouting();
+
+app.UseCors("ReactApp");
 
 app.UseHttpsRedirection();
 
@@ -118,5 +131,4 @@ app.MapControllers();
 
 app.UseSwagger();
 app.UseSwaggerUI();
-
 app.Run();
