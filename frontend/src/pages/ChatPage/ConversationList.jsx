@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react"
 import { getConversationsApi } from "../../api/conversationApi";
+import ConversationListItem from "./ConversationListItem"
 
-const ConversationList = () => {
+const ConversationList = ({ setCurrentConversationId }) => {
     const [conversationList, setConversationList] = useState([]);
-
 
     useEffect(() => {
         const loadConversations = async () => {
@@ -18,13 +18,6 @@ const ConversationList = () => {
         loadConversations();
     }, [])
 
-    const conversationListItems = conversationList.map(item => 
-        <li key={ item.conversationId}>
-            <p>{item.conversationId}</p>
-            <p>{item.title}</p>
-        </li>
-    )
-
     const handleAgain = async () => {
         setConversationList(await getConversationsApi())
     }
@@ -32,14 +25,20 @@ const ConversationList = () => {
     return (
         <>
             <ul>
-                {conversationListItems}
+                {conversationList.map(item => {
+                    return (
+                        <ConversationListItem
+                            key={item.key}
+                            item={item}
+                            setCurrentConversationId={setCurrentConversationId}
+                        />
+                    )
+                })}
             </ul>
 
             <button onClick={handleAgain}>
                 Again
             </button>
-
-            
         </>
     )
 }

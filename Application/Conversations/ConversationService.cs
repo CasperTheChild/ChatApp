@@ -112,14 +112,18 @@ public class ConversationService
         await unitOfWork.SaveChangesAsync();
     }
 
-    public async Task LeaveConversation(Guid conversationId, ParticipantDto conversation)
+    public async Task LeaveConversation(Guid conversationId)
     {
         var conversationDomain = await conversationRepository
             .GetConversationByIdAsync(conversationId);
 
         if (conversationDomain is null) return;
 
-        conversationDomain.Leave(conversation.UserId);
+        var currentUserId = currentUserService.GetCurrentUserId();
+
+        if (currentUserId is null) return;
+
+        conversationDomain.Leave(currentUserId);
 
         await unitOfWork.SaveChangesAsync();
     }

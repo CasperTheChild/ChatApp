@@ -1,11 +1,14 @@
 import Conversation from "./Conversation"
 import ConversationList from "./ConversationList"
+import { useState } from "react";
 
 const ChatPage = () => {
+    const [currentConversationId, setCurrentConversationId] = useState(null);
+
     return (
         <>
-            <Conversation />
-            <ConversationList />
+            <ConversationList setCurrentConversationId={ setCurrentConversationId } />
+            <Conversation currentConversationId={ currentConversationId } />
         </>
     )
 }

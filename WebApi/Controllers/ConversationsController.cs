@@ -50,7 +50,7 @@ namespace WebApi.Controllers
             return NoContent();
         }
 
-        [HttpPost("{conversationId:guid}")]
+        [HttpPost("{conversationId:guid}/remove")]
         public async Task<IActionResult> AddParticipant(Guid conversationId, [FromBody] ParticipantDto participantDto)
         {
             await conversationService.AddParticipantToConversation(conversationId, participantDto);
@@ -64,10 +64,10 @@ namespace WebApi.Controllers
             return NoContent();
         }
 
-        [HttpPost("LeaveConversation/{conversationId:guid}")]
-        public async Task<IActionResult> LeaveConversation(Guid conversationId, [FromBody] ParticipantDto participant)
+        [HttpPost("{conversationId:guid}/leave")]
+        public async Task<IActionResult> LeaveConversation(Guid conversationId)
         {
-            await conversationService.LeaveConversation(conversationId, participant);
+            await conversationService.LeaveConversation(conversationId);
             return NoContent();
         }
     }
