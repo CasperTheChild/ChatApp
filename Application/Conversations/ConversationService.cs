@@ -27,8 +27,8 @@ public class ConversationService
         var userId = currentUserService.GetCurrentUserId();
 
         var domain = Conversation.Create(
-            userId, 
-            conversation.Title, 
+            userId,
+            conversation.Title,
             conversation.Description);
 
         conversationRepository.Add(domain);
@@ -96,6 +96,30 @@ public class ConversationService
         if (conversationDomain is null) return;
 
         conversationDomain.AddParticipant(participant.UserId);
+
+        await unitOfWork.SaveChangesAsync();
+    }
+
+    public async Task RemoveParticipantFromConversation(Guid conversationId, ParticipantDto participant)
+    {
+        var conversationDomain = await conversationRepository
+            .GetConversationByIdAsync(conversationId);
+
+        if (conversationDomain is null) return;
+
+        conversationDomain.RemoveParticipant(participant.UserId);
+
+        await unitOfWork.SaveChangesAsync();
+    }
+
+    public async Task LeaveConversation(Guid conversationId, ParticipantDto conversation)
+    {
+        var conversationDomain = await conversationRepository
+            .GetConversationByIdAsync(conversationId);
+
+        if (conversationDomain is null) return;
+
+        conversationDomain.Leave(conversation.UserId);
 
         await unitOfWork.SaveChangesAsync();
     }

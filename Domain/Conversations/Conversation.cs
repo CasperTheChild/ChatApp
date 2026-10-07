@@ -121,6 +121,23 @@ public class Conversation
         participants.Remove(participant);
     }
 
+    public void Leave(string userId)
+    {
+        if (string.IsNullOrWhiteSpace(userId))
+            throw new ArgumentException(
+                "UserId can not be empty",
+                nameof(userId));
+
+        var participant = participants
+            .FirstOrDefault(p => p.UserId == userId);
+
+        if (participant is null)
+            throw new InvalidOperationException(
+                "User is not a participant.");
+
+        participants.Remove(participant);
+    }
+
     public void ChangeTitle(string title)
     {
         if (string.IsNullOrWhiteSpace(title))
