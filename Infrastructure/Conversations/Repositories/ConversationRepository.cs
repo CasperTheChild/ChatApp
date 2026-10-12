@@ -2,6 +2,7 @@
 using Domain.Conversations;
 using Infrastructure.Conversations.Mappers;
 using Microsoft.EntityFrameworkCore;
+using System.Threading.Tasks;
 
 namespace Infrastructure.Conversations.Repositories;
 
@@ -50,8 +51,31 @@ public class ConversationRepository : IConversationRepository
         return ConversationMapper.ToDomain(conversation);
     }
 
-    public void Update(Conversation conversation)
+    public async Task Update(Conversation newConversation)
     {
-        this.context.Update(ConversationMapper.ToEntity(conversation));
+        var conversationEntity = await this.context.Conversations
+            .FindAsync(newConversation.ConversationId.Value);
+
+        if (conversationEntity is null)
+        {
+            return;
+        }
+
+        var newConversationEntity = ConversationMapper.ToEntity(newConversation);
+
+        conversationEntity.Title = newConversationEntity.Title;
+        conversationEntity.Description = newConversationEntity.Description;
+
+        var existingUserIds = conversationEntity.Participants
+            .Select(p => p.UserId)
+            .ToHashSet();
+
+        foreach (var participant in newConversationEntity.Participants)
+        {
+            if (existingUserIds.Contains(participant.UserId))
+                continue;
+
+            conversationEntity.Participants.Add(participant);
+        }
     }
 }

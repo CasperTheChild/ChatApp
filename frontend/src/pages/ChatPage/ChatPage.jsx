@@ -1,5 +1,5 @@
-import Conversation from "./Conversation"
-import ConversationList from "./ConversationList"
+import ConversationList from "../../components/conversationList/ConversationList";
+import Conversation from "../../components/conversation/Conversation";
 import { useState } from "react";
 
 const ChatPage = () => {
@@ -7,8 +7,11 @@ const ChatPage = () => {
 
     return (
         <>
-            <ConversationList setCurrentConversationId={ setCurrentConversationId } />
-            <Conversation currentConversationId={ currentConversationId } />
+            <ConversationList setCurrentConversationId={setCurrentConversationId} />
+            
+            {currentConversationId !== null &&
+                <Conversation currentConversationId={ currentConversationId } />
+            }
         </>
     )
 }

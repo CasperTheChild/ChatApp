@@ -8,5 +8,5 @@ public interface IConversationRepository
 
     void Add(Conversation conversation);
 
-    void Update(Conversation conversation);
+    Task Update(Conversation conversation);
 }

@@ -36,10 +36,16 @@ namespace WebApi.Controllers
             return Ok(await messageService.GetMessageByIdAsync(messageId));
         }
 
-        [HttpPut]
-        public async Task<IActionResult> UpdateMessage(MessageDto messageDto)
+        [HttpPut("{messageId:guid}")]
+        public async Task<IActionResult> UpdateMessage(Guid messageId, MessageUpdateDto messageDto)
         {
-            await messageService.UpdateMessageAsync(messageDto);
+            var result = await messageService.UpdateMessageAsync(messageId, messageDto);
+
+            if (!result)
+            {
+                return NotFound();
+            }
+
             return NoContent();
         }
 

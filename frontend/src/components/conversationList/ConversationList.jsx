@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react"
 import { getConversationsApi } from "../../api/conversationApi";
-import ConversationListItem from "./ConversationListItem"
+import ConversationListItem from "./ConversationItem"
 
 const ConversationList = ({ setCurrentConversationId }) => {
     const [conversationList, setConversationList] = useState([]);
@@ -23,12 +23,12 @@ const ConversationList = ({ setCurrentConversationId }) => {
     }
 
     return (
-        <>
+        <section>
             <ul>
                 {conversationList.map(item => {
                     return (
                         <ConversationListItem
-                            key={item.key}
+                            key={item.conversationId}
                             item={item}
                             setCurrentConversationId={setCurrentConversationId}
                         />
@@ -39,7 +39,7 @@ const ConversationList = ({ setCurrentConversationId }) => {
             <button onClick={handleAgain}>
                 Again
             </button>
-        </>
+        </section>
     )
 }
 

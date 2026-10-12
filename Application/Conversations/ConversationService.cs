@@ -97,6 +97,8 @@ public class ConversationService
 
         conversationDomain.AddParticipant(participant.UserId);
 
+        await conversationRepository.Update(conversationDomain);
+
         await unitOfWork.SaveChangesAsync();
     }
 

@@ -25,7 +25,6 @@ export const AuthProvider = ( { children }) => {
         }
         catch (error) {
             console.error('Error during login:', error);
-            throw new Error('Incorrect username or password!');
         }
     }
 
@@ -41,7 +40,6 @@ export const AuthProvider = ( { children }) => {
         }
         catch (error) {
             console.error('Error during register:', error);
-            throw new Error('Incorrect username or password!');
         }
     }
 

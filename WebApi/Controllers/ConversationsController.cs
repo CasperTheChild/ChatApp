@@ -50,14 +50,14 @@ namespace WebApi.Controllers
             return NoContent();
         }
 
-        [HttpPost("{conversationId:guid}/remove")]
+        [HttpPost("{conversationId:guid}/add")]
         public async Task<IActionResult> AddParticipant(Guid conversationId, [FromBody] ParticipantDto participantDto)
         {
             await conversationService.AddParticipantToConversation(conversationId, participantDto);
             return NoContent();
         }
 
-        [HttpPost("RemoveParticipant/{conversationId:guid}")]
+        [HttpPost("{conversationId:guid}/remove")]
         public async Task<IActionResult> RemoveParticipant(Guid conversationId, [FromBody] ParticipantDto participant)
         {
             await conversationService.RemoveParticipantFromConversation(conversationId, participant);

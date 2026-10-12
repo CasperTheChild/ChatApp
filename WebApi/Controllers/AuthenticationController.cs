@@ -9,10 +9,12 @@ namespace WebApi.Controllers;
 public class AuthenticationController : ControllerBase
 {
     private readonly AuthenticationService authenticationService;
+    private readonly CurrentUserService currentUserService;
 
-    public AuthenticationController(AuthenticationService authenticationService)
+    public AuthenticationController(AuthenticationService authenticationService, CurrentUserService currentUserService)
     {
         this.authenticationService = authenticationService;
+        this.currentUserService = currentUserService;
     }
 
     [HttpPost("login")]
@@ -26,6 +28,13 @@ public class AuthenticationController : ControllerBase
     public async Task<IActionResult> Register([FromBody] RegisterDto model)
     {
         var result = await authenticationService.RegisterAsync(model.UserName, model.Password);
+        return Ok(result);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetUserId()
+    {
+        var result = currentUserService.GetCurrentUserId();
         return Ok(result);
     }
 }

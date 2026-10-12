@@ -1,16 +1,17 @@
-import { getConversationByIdApi } from "../../api/conversationApi"
 import { useState, useEffect } from "react"
+import { getConversationByIdApi } from "../../api/conversationApi"
+import MessageList from "./MessageList";
+import MessageInput from "./MessageInput";
 
 const Conversation = ({ currentConversationId }) => {
     const [conversation, setConversation] = useState(null);
-    const [messages, setMessages] = useState([]);
 
     useEffect(() => {
         if (currentConversationId !== null) {
             const loadConversations = async () => {
                 try {
-                    const data = await getConversationByIdApi(currentConversationId);
-                    setConversation(data);
+                    const chatData = await getConversationByIdApi(currentConversationId);
+                    setConversation(chatData);
                 }
                 catch (error) {
                     console.error("Failed to load conversation in conversation:", error);
@@ -29,7 +30,14 @@ const Conversation = ({ currentConversationId }) => {
             </section>
             <hr/>
             <section>
-                <p>Messages</p>
+                <MessageList
+                    conversationId={currentConversationId}
+                />
+            </section>
+            <section>
+                <MessageInput
+                    conversationId={currentConversationId}
+                />
             </section>
         </section>
     )

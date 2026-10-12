@@ -1,4 +1,4 @@
-const ConversationListItem = ({ item, setCurrentConversationId }) => {
+const ConversationItem = ({ item, setCurrentConversationId }) => {
     const handleClickCurrentConversation = (conversationId) => {
         setCurrentConversationId(conversationId);
     }
@@ -12,4 +12,4 @@ const ConversationListItem = ({ item, setCurrentConversationId }) => {
     )
 }
 
-export default ConversationListItem
+export default ConversationItem

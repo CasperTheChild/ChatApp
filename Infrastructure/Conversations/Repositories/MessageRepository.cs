@@ -21,11 +21,12 @@ public class MessageRepository : IMessageRepository
 
     public async Task<List<Message>> GetAllMessagesAsync(Guid conversationId)
     {
-        return await this.context.Messages
+        var messageEntities = await this.context.Messages
             .Where(m => m.ConversationId == conversationId)
-            .Select(m => MessageMapper.ToDomain(m))
             .OrderBy(m => m.CreatedAt)
             .ToListAsync();
+
+        return messageEntities.Select(m => MessageMapper.ToDomain(m)).ToList();
     }
 
     public async Task<Message?> GetMessageByIdAsync(Guid id)

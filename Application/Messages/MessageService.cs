@@ -23,8 +23,13 @@ public class MessageService
 
     public async Task<MessageDto> SendMessage(MessageCreateDto message)
     {
+        var userId = currentUserService.GetCurrentUserId();
+
+        if (userId is null)
+            throw new ArgumentNullException(nameof(userId));
+
         var domain = Message.Create(
-            message.UserId,
+            userId,
             new ConversationId(message.ConversationId),
             message.Content);
 
@@ -74,19 +79,19 @@ public class MessageService
                 m.IsDeleted));
     }
 
-    public async Task UpdateMessageAsync(MessageDto message)
+    public async Task<bool> UpdateMessageAsync(Guid messageId, MessageUpdateDto message)
     {
-        var domain = new Message(
-            new MessageId(message.ConversationId),
-            message.UserId,
-            new ConversationId(message.ConversationId),
-            message.Content,
-            message.CreatedAt,
-            message.LastUpdatedAt,
-            message.IsDeleted);
+        var domain = await messageRepository.GetMessageByIdAsync(messageId);
+
+        if (domain is null)
+            return false;
+
+        domain.ChangeContent(message.Content);
 
         messageRepository.Update(domain);
 
         await unitOfWork.SaveChangesAsync();
+
+        return true;
     }
 }
