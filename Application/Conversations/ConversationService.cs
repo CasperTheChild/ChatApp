@@ -60,7 +60,7 @@ public class ConversationService
                     .ToList()));
     }
 
-    public async Task<ConversationDto?> GetConversationById(Guid Id)
+    public async Task<ConversationDto?> GetConversationByIdAsync(Guid Id)
     {
         var domain = await conversationRepository.GetConversationByIdAsync(Id);
 
@@ -79,7 +79,7 @@ public class ConversationService
 
     public async Task UpdateConversation(ConversationDto conversation)
     {
-        conversationRepository.Update(new Conversation(
+        _ = conversationRepository.Update(new Conversation(
             new ConversationId(conversation.ConversationId),
             conversation.CreatedAt,
             conversation.Participants.Select(p => new Participant(p.UserId)).ToList(),
@@ -128,5 +128,18 @@ public class ConversationService
         conversationDomain.Leave(currentUserId);
 
         await unitOfWork.SaveChangesAsync();
+    }
+
+    public async Task<bool> IsParticipantAsync(Guid conversationId, string userId)
+    {
+        var conversationDomain = await conversationRepository.GetConversationByIdAsync(conversationId);
+
+        if (conversationDomain is null)
+            return false;
+
+        if (conversationDomain.HasParticipant(userId))
+            return true;
+
+        return false;
     }
 }

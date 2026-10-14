@@ -43,7 +43,9 @@ public class ConversationRepository : IConversationRepository
 
     public async Task<Conversation?> GetConversationByIdAsync(Guid id)
     {
-        var conversation = await this.context.Conversations.FindAsync(id);
+        var conversation = await this.context.Conversations
+            .Include(c => c.Participants)
+            .FirstOrDefaultAsync(c => c.ConversationId == id);
 
         if (conversation is null)
             return null;

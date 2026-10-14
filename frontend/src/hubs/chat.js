@@ -38,6 +38,19 @@ export async function stop() {
     }
 }
 
-// connection.onclose(async () => {
-//     await start();
-// });
+
+export async function addToGroup(connection, conversationId) {
+    if (!connection) {
+        throw new Error("SignalR connection is not available.");
+    }
+
+    await connection.invoke("AddToGroup", conversationId);
+}
+
+export async function removeFromGroup(connection, conversationId) {
+    if (!connection) {
+        throw new Error("SignalR connection is not available.");
+    }
+
+    await connection.invoke("RemoveFromGroup", conversationId);
+}

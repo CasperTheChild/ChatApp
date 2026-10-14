@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from "react";
-import start from "../hubs/chat";
+import start, { addToGroup, removeFromGroup } from "../hubs/chat";
 import { UseAuth } from "./AuthContext";
 
 const HubContext = createContext();
@@ -43,7 +43,7 @@ export const HubProvider = ({ children }) => {
     }, [loggedIn, token])
 
     return (
-        <HubContext.Provider value={{ connection }}>
+        <HubContext.Provider value={{ connection, addToGroup, removeFromGroup }}>
             { children }
         </HubContext.Provider>
     )

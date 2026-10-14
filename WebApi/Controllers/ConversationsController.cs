@@ -28,7 +28,7 @@ namespace WebApi.Controllers
         [HttpGet("{conversationId:guid}")]
         public async Task<IActionResult> GetConversationById(Guid conversationId)
         {
-            var result = await conversationService.GetConversationById(conversationId);
+            var result = await conversationService.GetConversationByIdAsync(conversationId);
 
             if (result is null)
                 return NotFound();
