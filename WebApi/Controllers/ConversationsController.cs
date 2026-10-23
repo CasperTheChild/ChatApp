@@ -44,9 +44,9 @@ namespace WebApi.Controllers
         }
 
         [HttpPut("{conversationId:guid}")]
-        public async Task<IActionResult> UpdateConversation(Guid conversationId, [FromBody] ConversationDto conversation)
+        public async Task<IActionResult> UpdateConversation(Guid conversationId, [FromBody] ConversationUpdateDto conversation)
         {
-            await conversationService.UpdateConversation(conversation);
+            await conversationService.UpdateConversation(conversationId, conversation);
             return NoContent();
         }
 

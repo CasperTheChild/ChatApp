@@ -53,6 +53,20 @@ public class ConversationRepository : IConversationRepository
         return ConversationMapper.ToDomain(conversation);
     }
 
+    public async Task<bool> IsParticipant(string userId, Guid conversationId)
+    {
+        var conversation = await this.context.Conversations.FindAsync(conversationId);
+
+        if (conversation is null)
+            return false;
+
+        if (conversation.Participants
+            .FirstOrDefault(p => p.UserId == userId) == null) 
+            return false;
+
+        return true;
+    }
+
     public async Task Update(Conversation newConversation)
     {
         var conversationEntity = await this.context.Conversations

@@ -8,5 +8,5 @@ public interface IMessageRepository
 
     void Add(Message message);
 
-    void Update(Message message);
+    Task UpdateAsync(Message message);
 }

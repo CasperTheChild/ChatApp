@@ -11,6 +11,7 @@ using Infrastructure.Persistence.Repositories;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
+using WebApi.ExceptionHandling;
 using WebApi.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -131,6 +132,9 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddSignalR();
 
+builder.Services.AddProblemDetails();
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+
 var app = builder.Build();
 
 app.UseRouting();
@@ -145,6 +149,11 @@ app.UseAuthorization();
 app.MapHub<ChatHub>("/hubs/chat");
 
 app.MapControllers();
+
+if (!app.Environment.IsDevelopment())
+{
+    app.UseExceptionHandler("/Error");
+}
 
 app.UseSwagger();
 app.UseSwaggerUI();

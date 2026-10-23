@@ -1,5 +1,7 @@
-﻿using Application.IAM;
+﻿using Application.Conversations.Exceptions;
+using Application.IAM;
 using Application.Messages.Dto;
+using Application.Messages.Exceptions;
 using Domain.Common.Repository.Interfaces;
 using Domain.Conversations;
 
@@ -8,43 +10,44 @@ namespace Application.Messages;
 public class MessageService
 {
     private readonly IMessageRepository messageRepository;
+    private readonly IConversationRepository conversationRepository;
     private readonly CurrentUserService currentUserService;
     private readonly IUnitOfWork unitOfWork;
 
     public MessageService(
         IMessageRepository messageRepository,
+        IConversationRepository conversationRepository,
         CurrentUserService currentUserService,
         IUnitOfWork unitOfWork)
     {
         this.messageRepository = messageRepository;
+        this.conversationRepository = conversationRepository;
         this.currentUserService = currentUserService;
         this.unitOfWork = unitOfWork;
     }
 
     public async Task<MessageDto> SendMessage(MessageCreateDto message)
     {
-        var userId = currentUserService.GetCurrentUserId();
+        var userId = currentUserService.GetCurrentUserId()
+            ?? throw new UnauthorizedAccessException();
 
-        if (userId is null)
-            throw new ArgumentNullException(nameof(userId));
-
-        var domain = Message.Create(
+        var messageDomain = Message.Create(
             userId,
             new ConversationId(message.ConversationId),
             message.Content);
 
-        messageRepository.Add(domain);
+        messageRepository.Add(messageDomain);
 
         await unitOfWork.SaveChangesAsync();
 
         return new MessageDto(
-            domain.MessageId.Value,
-            domain.UserId,
-            domain.ConversationId.Value,
-            domain.Content,
-            domain.CreatedAt,
-            domain.LastUpdatedAt,
-            domain.IsDeleted);
+            messageDomain.MessageId.Value,
+            messageDomain.UserId,
+            messageDomain.ConversationId.Value,
+            messageDomain.Content,
+            messageDomain.CreatedAt,
+            messageDomain.LastUpdatedAt,
+            messageDomain.IsDeleted);
     }
 
     public async Task<MessageDto?> GetMessageByIdAsync(Guid id)
@@ -52,7 +55,7 @@ public class MessageService
         var message = await messageRepository.GetMessageByIdAsync(id);
 
         if (message is null)
-            return null;
+            throw new MessageNotFoundException(id);
 
         return new MessageDto(
             message.MessageId.Value,
@@ -66,9 +69,15 @@ public class MessageService
 
     public async Task<IEnumerable<MessageDto>> GetAllMessagesAsync(Guid conversationId)
     {
-        var domain = await messageRepository.GetAllMessagesAsync(conversationId);
+        var userId = currentUserService.GetCurrentUserId()
+            ?? throw new UnauthorizedAccessException();
 
-        return domain
+        if (!await conversationRepository.IsParticipant(userId, conversationId))
+            throw new ParticipantNotFoundException(userId, conversationId);
+
+        var messageDomain = await messageRepository.GetAllMessagesAsync(conversationId);
+
+        return messageDomain
             .Select(m => new MessageDto(
                 m.MessageId.Value,
                 m.UserId,
@@ -79,19 +88,35 @@ public class MessageService
                 m.IsDeleted));
     }
 
-    public async Task<bool> UpdateMessageAsync(Guid messageId, MessageUpdateDto message)
+    public async Task<MessageDto?> UpdateMessageAsync(Guid conversationId, Guid messageId, MessageUpdateDto message)
     {
-        var domain = await messageRepository.GetMessageByIdAsync(messageId);
+        var userId = currentUserService.GetCurrentUserId()
+            ?? throw new UnauthorizedAccessException();
 
-        if (domain is null)
-            return false;
+        if (!await conversationRepository.IsParticipant(userId, conversationId))
+            throw new ParticipantNotFoundException(userId, conversationId);
 
-        domain.ChangeContent(message.Content);
+        var messageDomain = await messageRepository.GetMessageByIdAsync(messageId);
 
-        messageRepository.Update(domain);
+        if (messageDomain is null)
+            throw new MessageNotFoundException(messageId);
+
+        if (messageDomain.ConversationId.Value != conversationId)
+            throw new MessageNotFoundException(messageId, conversationId);
+
+        messageDomain.ChangeContent(message.Content);
+
+        await messageRepository.Update(messageDomain);
 
         await unitOfWork.SaveChangesAsync();
 
-        return true;
+        return new MessageDto(
+            messageDomain.MessageId.Value,
+            messageDomain.UserId,
+            messageDomain.ConversationId.Value,
+            messageDomain.Content,
+            messageDomain.CreatedAt,
+            messageDomain.LastUpdatedAt,
+            messageDomain.IsDeleted);
     }
 }

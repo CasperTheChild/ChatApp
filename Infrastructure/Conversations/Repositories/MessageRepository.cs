@@ -40,8 +40,14 @@ public class MessageRepository : IMessageRepository
         return MessageMapper.ToDomain(entity);
     }
 
-    public void Update(Message message)
+    public async Task UpdateAsync(Message message)
     {
-        this.context.Messages.Update(MessageMapper.ToEntity(message));
+        var entity = await this.context.Messages.FindAsync(message.MessageId.Value);
+
+        if (entity is null) 
+            return;
+
+        entity.Content = message.Content;
+        entity.IsDeleted = message.IsDeleted;
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Application.Conversations.Dto;
+using Application.Conversations.Exceptions;
 using Application.Conversations.Models;
 using Application.IAM;
 using Domain.Common.Repository.Interfaces;
@@ -24,7 +25,8 @@ public class ConversationService
 
     public async Task<ConversationDto> CreateConversation(ConversationCreateDto conversation)
     {
-        var userId = currentUserService.GetCurrentUserId();
+        var userId = currentUserService.GetCurrentUserId()
+            ?? throw new UnauthorizedAccessException();
 
         var domain = Conversation.Create(
             userId,
@@ -47,7 +49,11 @@ public class ConversationService
 
     public async Task<IEnumerable<ConversationDto>> GetConversations()
     {
-        var conversations = await conversationRepository.GetAllConversationByUserId(currentUserService.GetCurrentUserId()!);
+        var userId = currentUserService.GetCurrentUserId()
+            ?? throw new UnauthorizedAccessException();
+
+        var conversations = await conversationRepository
+            .GetAllConversationByUserId(currentUserService.GetCurrentUserId()!);
 
         return conversations
             .Select(c => new ConversationDto(
@@ -60,12 +66,9 @@ public class ConversationService
                     .ToList()));
     }
 
-    public async Task<ConversationDto?> GetConversationByIdAsync(Guid Id)
+    public async Task<ConversationDto?> GetConversationByIdAsync(Guid conversationId)
     {
-        var domain = await conversationRepository.GetConversationByIdAsync(Id);
-
-        if (domain is null)
-            return null;
+        var domain = await GetConversationForCurrentUserAsync(conversationId);
 
         return new ConversationDto(
             domain.ConversationId.Value,
@@ -77,69 +80,104 @@ public class ConversationService
                 .ToList());
     }
 
-    public async Task UpdateConversation(ConversationDto conversation)
+    public async Task<ConversationDto?> UpdateConversation(
+        Guid conversationId,
+        ConversationUpdateDto conversationDto)
     {
-        _ = conversationRepository.Update(new Conversation(
-            new ConversationId(conversation.ConversationId),
-            conversation.CreatedAt,
-            conversation.Participants.Select(p => new Participant(p.UserId)).ToList(),
-            conversation.Title,
-            conversation.Description));
+        var domain = await GetConversationForCurrentUserAsync(conversationId);
+
+        domain.ChangeDescription(conversationDto.Description);
+        domain.ChangeTitle(conversationDto.Title);
+
+        await conversationRepository.Update(domain);
+
         await unitOfWork.SaveChangesAsync();
+
+        return new ConversationDto(
+            domain.ConversationId.Value,
+            domain.CreatedAt,
+            domain.Title,
+            domain.Description,
+            domain.Participants
+                .Select(p => new ParticipantDto(p.UserId))
+                .ToList());
     }
 
-    public async Task AddParticipantToConversation(Guid conversationId, ParticipantDto participant)
+    public async Task AddParticipantToConversation(
+        Guid conversationId,
+        ParticipantDto participant)
     {
-        var conversationDomain = await conversationRepository
-            .GetConversationByIdAsync(conversationId);
+        var domain = await GetConversationForCurrentUserAsync(conversationId);
 
-        if (conversationDomain is null) return;
+        domain.AddParticipant(participant.UserId);
 
-        conversationDomain.AddParticipant(participant.UserId);
-
-        await conversationRepository.Update(conversationDomain);
+        await conversationRepository.Update(domain);
 
         await unitOfWork.SaveChangesAsync();
     }
 
     public async Task RemoveParticipantFromConversation(Guid conversationId, ParticipantDto participant)
     {
-        var conversationDomain = await conversationRepository
+        var domain = await conversationRepository
             .GetConversationByIdAsync(conversationId);
 
-        if (conversationDomain is null) return;
+        if (domain is null) return;
 
-        conversationDomain.RemoveParticipant(participant.UserId);
+        domain.RemoveParticipant(participant.UserId);
 
         await unitOfWork.SaveChangesAsync();
     }
 
     public async Task LeaveConversation(Guid conversationId)
     {
-        var conversationDomain = await conversationRepository
+        var domain = await conversationRepository
             .GetConversationByIdAsync(conversationId);
 
-        if (conversationDomain is null) return;
+        if (domain is null) return;
 
-        var currentUserId = currentUserService.GetCurrentUserId();
+        var userId = currentUserService.GetCurrentUserId();
 
-        if (currentUserId is null) return;
+        if (userId is null) return;
 
-        conversationDomain.Leave(currentUserId);
+        if (!domain.HasParticipant(userId))
+            throw new ParticipantNotFoundException(userId, conversationId);
+
+        domain.Leave(userId);
 
         await unitOfWork.SaveChangesAsync();
     }
 
     public async Task<bool> IsParticipantAsync(Guid conversationId, string userId)
     {
-        var conversationDomain = await conversationRepository.GetConversationByIdAsync(conversationId);
+        var domain = await conversationRepository.GetConversationByIdAsync(conversationId);
 
-        if (conversationDomain is null)
+        if (domain is null)
             return false;
 
-        if (conversationDomain.HasParticipant(userId))
+        if (domain.HasParticipant(userId))
             return true;
 
         return false;
+    }
+
+    private async Task<Conversation> GetConversationForCurrentUserAsync(
+        Guid conversationId)
+    {
+        var userId = currentUserService.GetCurrentUserId()
+            ?? throw new UnauthorizedAccessException();
+
+        if (!await conversationRepository.IsParticipant(userId, conversationId))
+            throw new ParticipantNotFoundException(userId, conversationId);
+
+        var domain = await conversationRepository
+            .GetConversationByIdAsync(conversationId);
+
+        if (domain is null)
+            throw new ConversationNotFoundException(conversationId);
+
+        if (!domain.HasParticipant(userId))
+            throw new ParticipantNotFoundException(userId, conversationId);
+
+        return domain;
     }
 }

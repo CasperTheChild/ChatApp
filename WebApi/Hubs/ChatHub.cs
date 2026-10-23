@@ -1,4 +1,5 @@
 ﻿using Application.Conversations;
+using Application.Conversations.Dto;
 using Application.Conversations.Models;
 using Application.IAM;
 using Application.Messages;
@@ -37,6 +38,32 @@ public class ChatHub : Hub
             .SendAsync("ReceiveMessage", newMessage);
     }
 
+    public async Task UpdateMessage(Guid conversationId, Guid messageId, MessageUpdateDto message)
+    {
+        var newMessage = await messageService.UpdateMessageAsync(conversationId, messageId, message);
+
+        if (newMessage is null)
+            return;
+
+        await Clients
+            .Group(newMessage.ConversationId.ToString())
+            .SendAsync("ReceiveUpdatedMessage", newMessage);
+    }
+
+    public async Task CreateConversation(ConversationCreateDto conversationDto)
+    {
+        var newConversation = await conversationService.CreateConversation(conversationDto);
+
+        await Clients
+            .Group(newConversation.ConversationId.ToString())
+            .SendAsync("ReceiveConversation", newConversation);
+    }
+
+    public async Task UpdateConversation(Guid conversationId, ConversationUpdateDto conversationDto)
+    {
+        var newConversation = await conversationService.UpdateConversation(conversationId, conversationDto);
+    }
+
     public async Task AddToGroup(Guid conversationId)
     {
         var userId = currentUserService.GetCurrentUserId();
@@ -70,7 +97,7 @@ public class ChatHub : Hub
         if (!isParticipant)
             throw new HubException("User is not a participant.");
 
-        await Groups.AddToGroupAsync(
+        await Groups.RemoveFromGroupAsync(
             Context.ConnectionId,
             conversationId.ToString());
     }
