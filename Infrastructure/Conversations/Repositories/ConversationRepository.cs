@@ -52,45 +52,41 @@ public class ConversationRepository : IConversationRepository
         return ConversationMapper.ToDomain(conversation);
     }
 
-    public async Task<bool> IsParticipant(string userId, Guid conversationId)
+    public async Task<bool> IsParticipant(
+        string userId,
+        Guid conversationId)
     {
-        var conversation = await this.context.Conversations.FindAsync(conversationId);
-
-        if (conversation is null)
-            return false;
-
-        if (conversation.Participants
-            .FirstOrDefault(p => p.UserId == userId) == null) 
-            return false;
-
-        return true;
+        return await context.Conversations.AnyAsync(c =>
+            c.ConversationId == conversationId &&
+            c.Participants.Any(p => p.UserId == userId));
     }
 
     public async Task Update(Conversation newConversation)
     {
-        var conversationEntity = await this.context.Conversations
-            .FindAsync(newConversation.ConversationId.Value);
+        var conversationEntity = await context.Conversations
+            .Include(c => c.Participants)
+            .FirstOrDefaultAsync(c =>
+                c.ConversationId == newConversation.ConversationId.Value);
 
         if (conversationEntity is null)
-        {
             return;
-        }
 
-        var newConversationEntity = ConversationMapper.ToEntity(newConversation);
-
-        conversationEntity.Title = newConversationEntity.Title;
-        conversationEntity.Description = newConversationEntity.Description;
+        conversationEntity.Title = newConversation.Title;
+        conversationEntity.Description = newConversation.Description;
 
         var existingUserIds = conversationEntity.Participants
             .Select(p => p.UserId)
             .ToHashSet();
 
-        foreach (var participant in newConversationEntity.Participants)
+        foreach (var participant in newConversation.Participants)
         {
             if (existingUserIds.Contains(participant.UserId))
                 continue;
 
-            conversationEntity.Participants.Add(participant);
+            conversationEntity.Participants.Add(new Entities.ParticipantEntity() { 
+                UserId = participant.UserId,
+                ConversationId = newConversation.ConversationId.Value});
+            existingUserIds.Add(participant.UserId);
         }
     }
 }
