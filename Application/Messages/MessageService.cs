@@ -106,7 +106,7 @@ public class MessageService
 
         messageDomain.ChangeContent(message.Content);
 
-        await messageRepository.Update(messageDomain);
+        await messageRepository.UpdateAsync(messageDomain);
 
         await unitOfWork.SaveChangesAsync();
 

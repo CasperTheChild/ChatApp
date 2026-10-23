@@ -2,7 +2,6 @@
 using Domain.Conversations;
 using Infrastructure.Conversations.Mappers;
 using Microsoft.EntityFrameworkCore;
-using System.Threading.Tasks;
 
 namespace Infrastructure.Conversations.Repositories;
 

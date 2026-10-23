@@ -10,11 +10,12 @@ public class Conversation
 
     public IReadOnlyList<Participant> Participants => participants;
 
-    // Non empty
     public string Title { get; private set; }
 
-    // Can be empty
     public string Description { get; private set; }
+
+    private readonly int MaxTitleLength = 50;
+    private readonly int MaxDescriptionLength = 200;
 
     public Conversation(
         ConversationId conversationId,
@@ -26,16 +27,13 @@ public class Conversation
         if (participants is null) 
             throw new ArgumentNullException(nameof(participants));
 
-        if (title is null)
-            throw new ArgumentNullException(nameof(title));
-
-        if (description is null)
-            throw new ArgumentNullException(nameof(description));
+        ValidateTitle(title);
+        ValidateDescription(description);
 
         ConversationId = conversationId;
         CreatedAt = createdAt;
-        Title = title;
-        Description = description;
+        Title = title.Trim();
+        Description = string.IsNullOrWhiteSpace(description) ? null : description.Trim();
         this.participants.AddRange(participants);
     }
 
@@ -49,10 +47,8 @@ public class Conversation
                 "UserId can not be empty", 
                 nameof(userId));
 
-        if (string.IsNullOrWhiteSpace(title))
-            throw new ArgumentException(
-                "Title can not be empty", 
-                nameof(title));
+        ValidateTitle(title);
+        ValidateDescription(description);
 
         this.ConversationId = ConversationId.Generate();
         this.CreatedAt = DateTime.UtcNow;
@@ -155,5 +151,30 @@ public class Conversation
                 nameof(description));
 
         Description = description;
+    }
+
+    public static void ValidateTitle(string title)
+    {
+
+        if (string.IsNullOrWhiteSpace(title))
+            throw new ArgumentException(
+                "Title can not be empty",
+                nameof(title));
+
+        if (title.Length > 50)
+            throw new ArgumentException(
+                "Title can not have more than 50 letters",
+                nameof(title));
+
+        return;
+    }
+
+    public static void ValidateDescription(string description)
+    {
+        if (description.Length > 200)
+            throw new ArgumentException(
+                "Description can not have more than 200 letters",
+                nameof(description));
+
     }
 }

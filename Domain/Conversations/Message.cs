@@ -16,6 +16,8 @@ public class Message
 
     public bool IsDeleted { get; private set; }
 
+    private static readonly int MaxMessageLength = 500;
+
     // Constructurs
     public Message(
         MessageId messageId,
@@ -26,12 +28,10 @@ public class Message
         DateTime lastUpdatedAt,
         bool isDeleted)
     {
-        if (string.IsNullOrWhiteSpace(userId))
-            throw new ArgumentException("UserId can not be empty", nameof(userId));
-
-        if (string.IsNullOrWhiteSpace(content))
-            throw new ArgumentException("Content can not be empty", nameof(content));
-
+        ValidateUser(userId);
+        ValidateConversationId(conversationId);
+        ValidateContent(content);
+        
         MessageId = messageId;
         UserId = userId;
         ConversationId = conversationId;
@@ -46,18 +46,9 @@ public class Message
         ConversationId conversationId,
         string content)
     {
-        if (string.IsNullOrWhiteSpace(userId))
-            throw new ArgumentException(
-                "User Id can not be empty!",
-                nameof(userId));
-
-        if (conversationId is null)
-            throw new ArgumentNullException(nameof(conversationId));
-
-        if (string.IsNullOrWhiteSpace(content))
-            throw new ArgumentException(
-                "Content can not be null",
-                nameof(content));
+        ValidateUser(userId);
+        ValidateConversationId(conversationId);
+        ValidateContent(content);
 
         this.MessageId = MessageId.Generate();
         this.UserId = userId;
@@ -77,6 +68,8 @@ public class Message
 
     public void ChangeContent(string content)
     {
+        ValidateContent(content);
+
         if (this.IsDeleted)
             throw new InvalidOperationException(
                 "Can not edit a deleted message!");
@@ -97,5 +90,32 @@ public class Message
 
         this.LastUpdatedAt = DateTime.UtcNow;
         this.IsDeleted = true;
+    }
+
+    private static void ValidateContent(string content)
+    {
+        if (string.IsNullOrWhiteSpace(content))
+            throw new ArgumentException(
+                "Content can not be empty",
+                nameof(content));
+
+        if (content.Length > MaxMessageLength)
+            throw new ArgumentException(
+                $"Content length can not be more than {MaxMessageLength} characters",
+                nameof(content));
+    }
+
+    private static void ValidateUser(string userId)
+    {
+        if (string.IsNullOrWhiteSpace(userId))
+            throw new ArgumentException(
+                "User Id can not be empty!",
+                nameof(userId));
+    }
+
+    private static void ValidateConversationId(ConversationId conversationId)
+    {
+        if (conversationId is null)
+            throw new ArgumentNullException(nameof(conversationId));
     }
 }
