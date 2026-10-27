@@ -21,28 +21,53 @@ namespace WebApi.Controllers
         [HttpPost]
         public async Task<IActionResult> SendMessage(MessageCreateDto message)
         {
-            return Ok(await messageService.SendMessage(message));
+            var result = await messageService.SendMessage(message);
+
+            return Ok(result);
         }
 
         [HttpGet("conversations/{conversationId:guid}")]
         public async Task<IActionResult> GetMessages(Guid conversationId)
         {
-            return Ok(await messageService.GetAllMessagesAsync(conversationId));
+            var result = await messageService.GetAllMessagesAsync(conversationId);
+
+            return Ok(result);
         }
 
         [HttpGet("{messageId:guid}")]
         public async Task<IActionResult> GetMessageById(Guid messageId)
         {
-            return Ok(await messageService.GetMessageByIdAsync(messageId));
+            var result = await messageService.GetMessageByIdAsync(messageId);
+
+            return Ok(result);
         }
 
         [HttpPut("conversations/{conversationId:guid}/{messageId:guid}")]
-        public async Task<IActionResult> UpdateMessage(Guid conversationId, Guid messageId, MessageUpdateDto messageDto)
+        public async Task<IActionResult> UpdateMessage(
+            Guid conversationId, 
+            Guid messageId, 
+            MessageUpdateDto messageDto)
         {
-            var result = await messageService.UpdateMessageAsync(conversationId, messageId, messageDto);
+            var result = await messageService.UpdateMessageAsync(
+                conversationId, 
+                messageId, 
+                messageDto);
 
             return NoContent();
         }
 
+        [HttpGet("conversations/{conversationId:guid}/messages")]
+        public async Task<IActionResult> GetMessagesAsync(
+            Guid conversationId,
+            [FromQuery] int? limit,
+            [FromQuery] Guid? lastMessageId)
+        {
+            var result = await messageService.GetMessagesAsync(
+                conversationId, 
+                limit, 
+                lastMessageId);
+
+            return Ok(result);
+        }
     }
 }

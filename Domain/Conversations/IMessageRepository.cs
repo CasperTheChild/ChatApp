@@ -1,4 +1,6 @@
-﻿namespace Domain.Conversations;
+﻿using Infrastructure.Common;
+
+namespace Domain.Conversations;
 
 public interface IMessageRepository
 {
@@ -9,4 +11,9 @@ public interface IMessageRepository
     void Add(Message message);
 
     Task UpdateAsync(Message message);
+
+    Task<PageResult<Message>> GetMessagesAsync(
+        Guid conversationId,
+        int limit,
+        Guid? beforeMessageId);
 }
