@@ -162,6 +162,22 @@ public class MessageService
         };
     }
 
+    public async Task<MessageDeleteDto> DeleteMessageAsync(Guid messageId)
+    {
+        var messageDomain = await messageRepository.GetMessageByIdAsync(messageId)
+            ?? throw new MessageNotFoundException(messageId);
+
+        await CheckUserParticipanceAsync(messageDomain.ConversationId.Value);
+
+        messageDomain.DeleteMessage();
+
+        await messageRepository.UpdateAsync(messageDomain);
+
+        await unitOfWork.SaveChangesAsync();
+
+        return new MessageDeleteDto(messageDomain.ConversationId.Value, messageId);
+    }
+
     public async Task CheckUserParticipanceAsync(
         Guid conversationId)
     {

@@ -19,7 +19,7 @@ const MessageList = ({conversationId}) => {
 
         setMessages([]);
 
-        const handleReceiveMessage = (newMessage) => {
+        const handleReceivedMessage = (newMessage) => {
             if (String(newMessage.conversationId) !== String(conversationId)) {
                 return;
             }
@@ -30,7 +30,33 @@ const MessageList = ({conversationId}) => {
             ]);
         };
 
-        connection.on("ReceiveMessage", handleReceiveMessage);
+        const handleReceivedUpdatedMessage = (newMessage) => {
+            if (String(newMessage.conversationId) !== String(conversationId)) {
+                return;
+            }
+
+            setMessages(prev => 
+                prev.map(message =>
+                    message.messageId == newMessage.messageId
+                        ? { ...message, content: newMessage.content }
+                        : message
+                )
+            )
+        }
+
+        const handleReceivedDeletedMessage = (deleteMessageDto) => {
+            if (String(deleteMessageDto.conversationId) !== String(conversationId)) {
+                return;
+            }
+
+            setMessages(prev =>
+                prev.filter(message => message.messageId !== deleteMessageDto.messageId)
+            )
+        }
+
+        connection.on("ReceiveMessage", handleReceivedMessage);
+        connection.on("ReceiveUpdatedMessage", handleReceivedUpdatedMessage);
+        connection.on("ReceiveDeletedMessage", handleReceivedDeletedMessage);
 
         const initialize = async () => {
             try {
@@ -55,7 +81,9 @@ const MessageList = ({conversationId}) => {
 
         return () => {
             cancelled = true;
-            connection.off("ReceiveMessage", handleReceiveMessage);
+            connection.off("ReceiveMessage", handleReceivedMessage);
+            connection.off("ReceiveUpdatedMessage", handleReceivedUpdatedMessage);
+            connection.off("ReceiveDeletedMessage", handleReceivedDeletedMessage);
 
             if (joined) {
                 removeFromGroup(connection, conversationId).catch(error => {

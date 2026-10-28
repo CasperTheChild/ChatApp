@@ -38,9 +38,13 @@ public class ChatHub : Hub
             .SendAsync("ReceiveMessage", newMessage);
     }
 
-    public async Task UpdateMessage(Guid conversationId, Guid messageId, MessageUpdateDto message)
+    public async Task UpdateMessage(
+        MessageUpdateHubDto message)
     {
-        var newMessage = await messageService.UpdateMessageAsync(conversationId, messageId, message);
+        var newMessage = await messageService.UpdateMessageAsync(
+            message.ConversationId, 
+            message.MessageId,
+            new MessageUpdateDto(message.Content));
 
         if (newMessage is null)
             return;
@@ -50,18 +54,38 @@ public class ChatHub : Hub
             .SendAsync("ReceiveUpdatedMessage", newMessage);
     }
 
+    public async Task DeleteMessage(
+        MessageDeleteDto messageDeleteDto)
+    {
+        await messageService.DeleteMessageAsync(messageDeleteDto.MessageId);
+
+        await Clients
+            .Group(messageDeleteDto.ConversationId.ToString())
+            .SendAsync("ReceiveDeletedMessage", messageDeleteDto);
+    }
+
     public async Task CreateConversation(ConversationCreateDto conversationDto)
     {
-        var newConversation = await conversationService.CreateConversation(conversationDto);
+        var newConversation = await conversationService
+            .CreateConversation(conversationDto);
 
         await Clients
             .Group(newConversation.ConversationId.ToString())
             .SendAsync("ReceiveConversation", newConversation);
     }
 
-    public async Task UpdateConversation(Guid conversationId, ConversationUpdateDto conversationDto)
+    public async Task UpdateConversation(
+        Guid conversationId, 
+        ConversationUpdateDto conversationDto)
     {
-        var newConversation = await conversationService.UpdateConversation(conversationId, conversationDto);
+        var newConversation = await conversationService
+            .UpdateConversation(
+            conversationId, 
+            conversationDto);
+
+        await Clients
+            .Group(conversationId.ToString())
+            .SendAsync("ReceiveUpdatedMessage", newConversation);
     }
 
     public async Task AddToGroup(Guid conversationId)

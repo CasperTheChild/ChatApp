@@ -43,7 +43,7 @@ export const HubProvider = ({ children }) => {
     }, [loggedIn, token])
 
     return (
-        <HubContext.Provider value={{ connection, addToGroup, removeFromGroup }}>
+        <HubContext.Provider value={{ connection, addToGroup, removeFromGroup, stop }}>
             { children }
         </HubContext.Provider>
     )

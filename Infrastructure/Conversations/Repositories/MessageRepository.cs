@@ -24,7 +24,8 @@ public class MessageRepository : IMessageRepository
     public async Task<List<Message>> GetAllMessagesAsync(Guid conversationId)
     {
         var messageEntities = await this.context.Messages
-            .Where(m => m.ConversationId == conversationId)
+            .Where(m => m.ConversationId == conversationId
+                && !m.IsDeleted)
             .OrderBy(m => m.CreatedAt)
             .ThenBy(m => m.MessageId)
             .ToListAsync();
@@ -69,7 +70,8 @@ public class MessageRepository : IMessageRepository
         {
             var cursor = await this.context.Messages
                 .Where(m => m.ConversationId == conversationId
-                    && m.MessageId == beforeMessageId)
+                    && m.MessageId == beforeMessageId
+                    && !m.IsDeleted)
                 .Select(m => new { m.MessageId, m.CreatedAt })
                 .SingleAsync();
 
