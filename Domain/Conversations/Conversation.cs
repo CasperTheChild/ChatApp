@@ -33,7 +33,8 @@ public class Conversation
         ConversationId = conversationId;
         CreatedAt = createdAt;
         Title = title.Trim();
-        Description = string.IsNullOrWhiteSpace(description) ? null : description.Trim();
+        Description = string.IsNullOrWhiteSpace(description) ?
+            string.Empty : description.Trim();
         this.participants.AddRange(participants);
     }
 
