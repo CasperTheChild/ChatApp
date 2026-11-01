@@ -61,7 +61,7 @@ public class ConversationRepository : IConversationRepository
             c.Participants.Any(p => p.UserId == userId));
     }
 
-    public async Task Update(Conversation newConversation)
+    public async Task UpdateAsync(Conversation newConversation)
     {
         var conversationEntity = await context.Conversations
             .Include(c => c.Participants)

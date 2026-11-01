@@ -3,10 +3,13 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Domain.Conversations;
 using Infrastructure.Conversations.Entities;
+using Microsoft.Identity.Client;
+using Infrastructure.Contacts.Entities;
 
 namespace Infrastructure.Persistence.Context;
 
-public class ContextDb : IdentityDbContext<ApplicationUser>
+public class ContextDb
+    : IdentityDbContext<ApplicationUser>
 {
     public ContextDb(DbContextOptions<ContextDb> options)
         : base(options)
@@ -22,4 +25,10 @@ public class ContextDb : IdentityDbContext<ApplicationUser>
     public DbSet<ParticipantEntity> Participants { get; set; }
 
     public DbSet<MessageEntity> Messages { get; set; }
+
+    public DbSet<ContactListEntity> ContactLists { get; set; }
+
+    public DbSet<ContactEntity> Contacts { get; set; }
+
+    public DbSet<BlockedUserEntity> BlockedUsers { get; set; }
 }

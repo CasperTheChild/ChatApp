@@ -89,7 +89,7 @@ public class ConversationService
         domain.ChangeDescription(conversationDto.Description);
         domain.ChangeTitle(conversationDto.Title);
 
-        await conversationRepository.Update(domain);
+        await conversationRepository.UpdateAsync(domain);
 
         await unitOfWork.SaveChangesAsync();
 
@@ -111,7 +111,7 @@ public class ConversationService
 
         domain.AddParticipant(participant.UserId);
 
-        await conversationRepository.Update(domain);
+        await conversationRepository.UpdateAsync(domain);
 
         await unitOfWork.SaveChangesAsync();
     }

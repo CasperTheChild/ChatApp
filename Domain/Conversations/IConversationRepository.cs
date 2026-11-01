@@ -8,7 +8,7 @@ public interface IConversationRepository
 
     void Add(Conversation conversation);
 
-    Task Update(Conversation conversation);
+    Task UpdateAsync(Conversation conversation);
 
     Task<bool> IsParticipant(string userId, Guid conversationId);
 }

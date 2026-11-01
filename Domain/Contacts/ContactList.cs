@@ -15,6 +15,30 @@ public class ContactList
     public IReadOnlyList<BlockedUser> BlockedUsers => blockedUsers;
 
     public ContactList(
+        ContactListId contactListId,
+        string userId,
+        List<Contact> contacts,
+        List<BlockedUser> blockedUsers)
+    {
+        if (contactListId == null)
+            throw new ArgumentNullException(nameof(contactListId));
+
+        if (userId == null)
+            throw new ArgumentNullException(nameof(userId));
+
+        if (contacts is null)
+            throw new ArgumentNullException(nameof(contacts));
+
+        if (blockedUsers is null)
+            throw new ArgumentNullException(nameof(blockedUsers));
+
+        ContactListId = contactListId;
+        UserId = userId;
+        this.contacts = contacts;
+        this.blockedUsers = blockedUsers;
+    }
+
+    public ContactList(
         ContactListId contactListId, 
         string userId)
     {
@@ -82,7 +106,7 @@ public class ContactList
     {
         CheckUserId(userId);
 
-        if (blockedUsers.Any(c => c.UserId == userId))
+        if (blockedUsers.Any(c => c.ContactUserId == userId))
             throw new InvalidOperationException(
                 "User is already blocked");
 
@@ -94,7 +118,7 @@ public class ContactList
     {
         CheckUserId(userId);
 
-        var blockedUser = blockedUsers.FirstOrDefault(c => c.UserId == userId);
+        var blockedUser = blockedUsers.FirstOrDefault(c => c.ContactUserId == userId);
 
         if (blockedUser is null)
             throw new InvalidOperationException(
@@ -108,7 +132,7 @@ public class ContactList
     {
         CheckUserId(userId);
 
-        return blockedUsers.Any(c => c.UserId == userId);
+        return blockedUsers.Any(c => c.ContactUserId == userId);
     }
 
     private void CheckUserId(

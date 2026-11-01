@@ -223,7 +223,7 @@ public sealed class ConversationRepositoryTests
         {
             var repository = new ConversationRepository(updateContext);
 
-            await repository.Update(conversation);
+            await repository.UpdateAsync(conversation);
             await updateContext.SaveChangesAsync();
         }
 

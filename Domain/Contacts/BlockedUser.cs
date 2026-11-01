@@ -1,7 +1,7 @@
 ﻿namespace Domain.Contacts;
 
 public sealed record BlockedUser(
-    string UserId)
+    string ContactUserId)
 {
     public DateTime CreatedAt { get; } = DateTime.UtcNow;
 }
