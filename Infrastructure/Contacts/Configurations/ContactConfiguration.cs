@@ -10,9 +10,18 @@ internal class ContactConfiguration
     public void Configure(EntityTypeBuilder<ContactEntity> builder)
     {
         builder
-            .HasIndex(c => new { 
-                c.ContactListId, 
-                c.ContactUserId });
+            .HasKey(c => new
+            {
+                c.UserId,
+                c.ContactUserId
+            });
+
+        builder
+            .HasIndex(c => new
+            {
+                c.UserId,
+                c.CustomName
+            });
 
         builder
             .Property(c => c.CustomName)

@@ -1,14 +1,32 @@
-﻿namespace Domain.Contacts;
+﻿using Infrastructure.Common;
+
+namespace Domain.Contacts;
 
 public interface IContactRepository
 {
-    public Task<ContactList?> GetContactsAsync(string userId);
+    public Task<bool> HasContact(
+        string userId, 
+        string contactUserId);
 
-    public void AddContactsAsync(ContactList contactList);
+    public Task<Contact?> GetContactAsync(
+        string userId,
+        string contactUserId);
 
-    public Task UpdateContactsAsync(ContactList contactList);
+    public Task<IEnumerable<Contact>> GetAllContactsAsync(
+        string userId);
 
-    public Task<bool> HasContact(string userId, string ContactUserId);
+    public Task<PageResult<Contact>> GetAllContactsAsync(
+        string userId,
+        int limit,
+        string? contactUserId);
 
-    public Task<bool> IsBlocked(string userId, string ContactUserId);
+    public void AddContactAsync(
+        Contact contactList);
+
+    public Task UpdateContactsAsync(
+        Contact contactList);
+
+    public Task DeleteContactsAsync(
+        string userId,
+        string contactUserId);
 }

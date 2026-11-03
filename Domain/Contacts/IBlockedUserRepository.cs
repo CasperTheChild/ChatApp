@@ -1,0 +1,16 @@
+﻿using Infrastructure.Common;
+
+namespace Domain.Contacts;
+
+public interface IBlockedUserRepository
+{
+    public Task<bool> IsBlockedAsync(
+        string userId,
+        string contactUserId);
+
+    public void AddBLockedUserAsync(BlockedUser blockedUser);
+
+    public Task RemoveBlockedUserAsync(
+        string userId,
+        string contactUserId);
+}

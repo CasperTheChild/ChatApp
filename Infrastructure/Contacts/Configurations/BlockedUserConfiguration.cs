@@ -11,9 +11,9 @@ internal class BlockedUserConfiguration
     public void Configure(EntityTypeBuilder<BlockedUserEntity> builder)
     {
         builder
-            .HasIndex(c => new
+            .HasKey(c => new
             {
-                c.ContactListId,
+                c.UserId,
                 c.ContactUserId
             });
     }

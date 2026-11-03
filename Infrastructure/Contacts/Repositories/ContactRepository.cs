@@ -1,4 +1,5 @@
 ﻿using Domain.Contacts;
+using Infrastructure.Common;
 using Infrastructure.Contacts.Mappers;
 using Infrastructure.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
@@ -11,106 +12,115 @@ public class ContactRepository
 {
     private readonly ContextDb context;
 
-    public ContactRepository(
-        ContextDb context)
+    public ContactRepository(ContextDb context)
     {
         this.context = context;
     }
 
-    public void AddContactsAsync(ContactList contactList)
+    public void AddContactAsync(Contact contact)
     {
-        var entity = ContactListMapper.ToEntity(contactList);
-
-        context.ContactLists.Add(entity);
+        context.Add(ContactMapper.ToEntity(contact));
     }
 
-    public async Task<ContactList?> GetContactsAsync(string userId)
+    public async Task DeleteContactsAsync(
+        string userId, 
+        string contactUserId)
     {
-        var entity = await context.ContactLists
-            .Include(c => c.Contacts)
-            .Include(c => c.BlockedUsers)
-            .FirstOrDefaultAsync(c => c.UserId == userId);
+        var entity = await context.Contacts
+            .FindAsync(userId, contactUserId);
 
-        if (entity is null)
-            return null;
-
-        return ContactListMapper.ToDomain(entity);
-    }
-
-    public async Task<bool> HasContact(string userId, string ContactUserId)
-    {
-        var entity = await context.ContactLists
-            .Include(c => c.Contacts)
-            .FirstOrDefaultAsync(c => c.UserId == userId);
-
-        if (entity is null)
-            return false;
-
-        if (entity.Contacts.
-            Any(c => c.ContactUserId == ContactUserId)) return true;
-
-        return false;
-    }
-
-    public async Task<bool> IsBlocked(string userId, string ContactUserId)
-    {
-        var entity = await context.ContactLists
-            .Include(c => c.BlockedUsers)
-            .FirstOrDefaultAsync(c => c.UserId == userId);
-
-        if (entity is null) 
-            return false;
-
-        if (entity.BlockedUsers
-            .Any(c => c.ContactUserId == ContactUserId))
-            return true;
-
-        return false;
-    }
-
-    public async Task UpdateContactsAsync(ContactList contactList)
-    {
-        var entity = await context.ContactLists
-            .Include(c => c.Contacts)
-            .Include(c => c.BlockedUsers)
-            .FirstOrDefaultAsync(c => 
-            c.ContactListId == contactList.ContactListId.Value);
-        
         if (entity is null)
             return;
 
-        var existingContacts = entity.Contacts
-            .Select(c => c.ContactUserId)
-            .ToHashSet();
+        context.Remove(entity);
+    }
 
-        var existingBlockedUsers = entity.BlockedUsers
-            .Select(c => c.ContactUserId)
-            .ToHashSet();
+    public async Task<IEnumerable<Contact>> GetAllContactsAsync(
+        string userId)
+    {
+        var result = await context.Contacts
+            .Where(c => c.UserId == userId)
+            .Select(c => ContactMapper.ToDomain(c))
+            .ToListAsync();
 
-        foreach ( var contact in contactList.Contacts)
+        return result;
+    }
+
+    public async Task<PageResult<Contact>> GetAllContactsAsync(
+        string userId, 
+        int limit, 
+        string? contactUserId)
+    {
+        var count = limit + 1;
+
+        var query = context.Contacts
+            .Where(c => c.UserId == userId);
+
+        if (contactUserId != null)
         {
-            if (existingContacts.Contains(contact.ContactUserId))
-                continue;
+            var cursor = await context.Contacts
+                .FindAsync(new
+                {
+                    userId,
+                    ContactUserId = contactUserId
+                });
 
-            entity.Contacts.Add(new Entities.ContactEntity()
-            {
-                ContactUserId = contact.ContactUserId,
-                CustomName = contact.CustomName,
-                ContactListId = contactList.ContactListId.Value
-            });
+            query = query
+                .Where(c => c.CustomName.CompareTo(contactUserId) < 0);
         }
 
-        foreach( var blockedUser in contactList.BlockedUsers)
-        {
-            if (existingBlockedUsers.Contains(blockedUser.ContactUserId))
-                continue;
+        var entities = await query
+            .OrderByDescending(c => c.CustomName)
+            .Take(count)
+            .ToListAsync();
 
-            entity.BlockedUsers.Add(new Entities.BlockedUserEntity()
+        var hasMore = entities.Count > limit;
+        var items = entities
+            .Take(limit)
+            .Select(c => ContactMapper.ToDomain(c));
+
+        return new PageResult<Contact>()
+        {
+            Items = items,
+            HasMore = hasMore
+        };
+    }
+
+    public async Task<Contact?> GetContactAsync(
+        string userId, 
+        string contactUserId)
+    {
+        var entity = await context.Contacts
+            .FindAsync(new
             {
-                ContactUserId = blockedUser.ContactUserId,
-                CreatedAt = blockedUser.CreatedAt,
-                ContactListId = contactList.ContactListId.Value
+                UserId = userId,
+                ContactUserId = contactUserId
             });
-        }
+
+        if (entity is null) return null;
+
+        return ContactMapper.ToDomain(entity);
+    }
+
+    public async Task<bool> HasContact(string userId, string contactUserId)
+    {
+        return await context.Contacts
+            .AnyAsync(c =>
+            c.UserId == userId
+            && c.ContactUserId == contactUserId);
+    }
+
+    public async Task UpdateContactsAsync(Contact contact)
+    {
+        var entity = await context.Contacts
+            .FindAsync(new
+            {
+                contact.UserId,
+                ContactUserId = contact.UserId
+            });
+
+        if (entity is null) return;
+
+        entity.CustomName = contact.CustomName;
     }
 }
