@@ -1,4 +1,4 @@
-﻿namespace Application.IAM.Exceptions;
+﻿namespace Application.Common.Exceptions;
 
 internal class UnauthorizedAccessException : Exception
 {

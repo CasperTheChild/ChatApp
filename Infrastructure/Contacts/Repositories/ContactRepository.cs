@@ -1,4 +1,6 @@
-﻿using Domain.Contacts;
+﻿using Application.Contacts;
+using Application.Contacts.Dto;
+using Domain.Contacts;
 using Infrastructure.Common;
 using Infrastructure.Contacts.Mappers;
 using Infrastructure.Persistence.Context;
@@ -8,7 +10,7 @@ using System.Reflection.Metadata.Ecma335;
 namespace Infrastructure.Contacts.Repositories;
 
 public class ContactRepository
-    : IContactRepository
+    : IContactRepository, IContactQueries
 {
     private readonly ContextDb context;
 
@@ -65,8 +67,11 @@ public class ContactRepository
                     ContactUserId = contactUserId
                 });
 
-            query = query
-                .Where(c => c.CustomName.CompareTo(contactUserId) < 0);
+            if (cursor is not null)
+            {
+                query = query
+                    .Where(c => c.CustomName.CompareTo(cursor.CustomName) < 0);
+            }
         }
 
         var entities = await query
@@ -100,6 +105,51 @@ public class ContactRepository
         if (entity is null) return null;
 
         return ContactMapper.ToDomain(entity);
+    }
+
+    public async Task<PageResult<ContactCompleteDto>> GetContactsAsync(
+        string userId, 
+        int limit, 
+        string? contactUserId)
+    {
+        var count = limit + 1;
+
+        var query = context.Contacts
+            .Where(c => c.UserId == userId);
+
+        if (contactUserId is not null)
+        {
+            var cursor = await context.Contacts
+                .FirstOrDefaultAsync(c => c.UserId == userId
+                    && c.ContactUserId == contactUserId);
+
+            if (cursor is not null)
+            {
+                query = query
+                    .Where(c => c.CustomName.CompareTo(cursor.CustomName) < 0);
+            }
+        }
+
+        var entities = await query
+            .OrderByDescending(c => c.CustomName)
+            .Take(count)
+            .ToListAsync();
+
+        var hasMore = entities.Count > limit ? true : false;
+
+        var items = entities
+            .Select(c => new ContactCompleteDto(
+                c.ContactUserId,
+                c.CustomName,
+                context.BlockedUsers.Any(c =>
+                    c.UserId == c.UserId &&
+                    c.ContactUserId == c.ContactUserId)));
+
+        return new PageResult<ContactCompleteDto>()
+        {
+            Items = items,
+            HasMore = hasMore
+        };
     }
 
     public async Task<bool> HasContact(string userId, string contactUserId)

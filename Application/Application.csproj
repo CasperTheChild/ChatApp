@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <Folder Include="Conversations\Commands\" />
+    <Folder Include="IAM\Exceptions\" />
   </ItemGroup>
 
 </Project>

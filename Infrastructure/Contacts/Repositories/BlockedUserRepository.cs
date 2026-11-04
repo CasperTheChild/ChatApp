@@ -16,7 +16,7 @@ public class BlockedUserRepository
         this.context = context;
     }
 
-    public void AddBLockedUserAsync(BlockedUser blockedUser)
+    public void AddBLockedUser(BlockedUser blockedUser)
     {
         context.Add(BlockedUserMapper.ToEntity(blockedUser));
     }

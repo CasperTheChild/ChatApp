@@ -8,7 +8,7 @@ public interface IBlockedUserRepository
         string userId,
         string contactUserId);
 
-    public void AddBLockedUserAsync(BlockedUser blockedUser);
+    public void AddBLockedUser(BlockedUser blockedUser);
 
     public Task RemoveBlockedUserAsync(
         string userId,
