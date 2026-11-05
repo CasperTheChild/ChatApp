@@ -140,9 +140,11 @@ public class MessageService
                 throw new MessageNotFoundException((Guid)lastMessageId);
         }
 
-        var pageResult = await messageRepository.GetMessagesAsync(conversationId, pageSize, lastMessageId);
+        var pageResult = await messageRepository
+            .GetMessagesAsync(conversationId, pageSize, lastMessageId);
 
-        var items = pageResult.Items.Select(m => new MessageDto(
+        var items = pageResult.Items
+            .Select(m => new MessageDto(
                 m.MessageId.Value,
                 m.UserId,
                 m.ConversationId.Value,
@@ -158,7 +160,7 @@ public class MessageService
         {
             Items = items,
             HasMore = pageResult.HasMore,
-            NextCursor = pageResult.HasMore ? items[0].MessageId: null,
+            NextCursor = pageResult.HasMore ? items[0]: null,
         };
     }
 

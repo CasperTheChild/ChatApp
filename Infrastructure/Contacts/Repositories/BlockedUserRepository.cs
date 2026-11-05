@@ -21,6 +21,16 @@ public class BlockedUserRepository
         context.Add(BlockedUserMapper.ToEntity(blockedUser));
     }
 
+    public async Task<IEnumerable<BlockedUser>> GetAllAsync(string userId)
+    {
+        var entities = await context.BlockedUsers
+            .Where(c => c.UserId == userId)
+            .ToListAsync();
+
+        return entities
+            .Select(c => new BlockedUser(c.UserId, c.ContactUserId));
+    }
+
     public async Task<bool> IsBlockedAsync(
         string userId, 
         string contactUserId)

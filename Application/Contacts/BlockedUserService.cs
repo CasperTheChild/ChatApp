@@ -1,4 +1,5 @@
-﻿using Application.Contacts.Exceptions;
+﻿using Application.Contacts.Dto;
+using Application.Contacts.Exceptions;
 using Application.IAM;
 using Domain.Common.Repository.Interfaces;
 using Domain.Contacts;
@@ -22,7 +23,18 @@ public class BlockedUserService
         this.unitOfWork = unitOfWork;
     }
 
-    public async Task BlockUser(string contactUserId)
+    public async Task<IEnumerable<BlockedUserDto>> GetBlockedUsersAsync()
+    {
+        var userId = currentUserService.GetCurrentUserId()
+            ?? throw new UnauthorizedAccessException();
+
+        var items = await blockedUserRepository
+            .GetAllAsync(userId);
+
+        return items.Select(c => new BlockedUserDto(c.UserId, c.ContactUserId));
+    }
+
+    public async Task BlockUserAsync(string contactUserId)
     {
         var userId = currentUserService.GetCurrentUserId()
             ?? throw new UnauthorizedAccessException();
@@ -40,7 +52,7 @@ public class BlockedUserService
         await unitOfWork.SaveChangesAsync();
     }
 
-    public async Task RemoveBlockedUser(string contactUserId)
+    public async Task RemoveBlockedUserAsync(string contactUserId)
     {
         var userId = currentUserService.GetCurrentUserId()
             ?? throw new UnauthorizedAccessException();
