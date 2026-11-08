@@ -21,7 +21,7 @@ public class ContactsController
         this.blockedUserService = blockedUserService;
     }
 
-    [HttpGet]
+    [HttpGet("all")]
     public async Task<IActionResult> GetContactsAsync()
     {
         var items = await contactService.GetContactsAsync();

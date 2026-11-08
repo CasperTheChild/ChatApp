@@ -6,6 +6,7 @@ using Application.Messages.Dto;
 using Application.Messages.Exceptions;
 using Domain.Common.Repository.Interfaces;
 using Domain.Conversations;
+using UnauthorizedAccessException = Application.Common.Exceptions.UnauthorizedAccessException;
 
 namespace Application.Messages;
 

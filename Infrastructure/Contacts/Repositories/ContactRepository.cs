@@ -5,6 +5,7 @@ using Infrastructure.Common;
 using Infrastructure.Contacts.Mappers;
 using Infrastructure.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration.UserSecrets;
 using System.Reflection.Metadata.Ecma335;
 
 namespace Infrastructure.Contacts.Repositories;
@@ -61,11 +62,7 @@ public class ContactRepository
         if (contactUserId != null)
         {
             var cursor = await context.Contacts
-                .FindAsync(new
-                {
-                    userId,
-                    ContactUserId = contactUserId
-                });
+                .FindAsync(userId, contactUserId);
 
             if (cursor is not null)
             {
@@ -96,14 +93,10 @@ public class ContactRepository
         string contactUserId)
     {
         var entity = await context.Contacts
-            .FindAsync(new
-            {
-                UserId = userId,
-                ContactUserId = contactUserId
-            });
+            .FindAsync(userId, contactUserId);
 
         if (entity is null) return null;
-
+        
         return ContactMapper.ToDomain(entity);
     }
 
@@ -163,11 +156,7 @@ public class ContactRepository
     public async Task UpdateContactsAsync(Contact contact)
     {
         var entity = await context.Contacts
-            .FindAsync(new
-            {
-                contact.UserId,
-                ContactUserId = contact.UserId
-            });
+            .FindAsync(contact.UserId, contact.ContactUserId);
 
         if (entity is null) return;
 

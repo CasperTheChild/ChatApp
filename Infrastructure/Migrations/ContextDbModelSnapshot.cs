@@ -22,6 +22,42 @@ namespace Infrastructure.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("Infrastructure.Contacts.Entities.BlockedUserEntity", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ContactUserId")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("UserId", "ContactUserId");
+
+                    b.ToTable("BlockedUsers");
+                });
+
+            modelBuilder.Entity("Infrastructure.Contacts.Entities.ContactEntity", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ContactUserId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("CustomName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.HasKey("UserId", "ContactUserId");
+
+                    b.HasIndex("UserId", "CustomName");
+
+                    b.ToTable("Contacts");
+                });
+
             modelBuilder.Entity("Infrastructure.Conversations.Entities.ConversationEntity", b =>
                 {
                     b.Property<Guid>("ConversationId")

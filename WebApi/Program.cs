@@ -1,13 +1,18 @@
+using Application.Contacts;
 using Application.Conversations;
 using Application.IAM;
 using Application.IAM.Services.Interface;
 using Application.Messages;
+using Application.Users;
 using Domain.Common.Repository.Interfaces;
+using Domain.Contacts;
 using Domain.Conversations;
+using Infrastructure.Contacts.Repositories;
 using Infrastructure.Conversations.Repositories;
 using Infrastructure.Identity;
 using Infrastructure.Persistence.Context;
 using Infrastructure.Persistence.Repositories;
+using Infrastructure.Users;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
@@ -19,10 +24,17 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddScoped<IAuthenticationService, AuthService>();
 builder.Services.AddScoped<IConversationRepository, ConversationRepository>();
 builder.Services.AddScoped<IMessageRepository, MessageRepository>();
+builder.Services.AddScoped<IContactRepository, ContactRepository>();
+builder.Services.AddScoped<IContactQueries, ContactRepository>();
+builder.Services.AddScoped<IBlockedUserRepository, BlockedUserRepository>();
+builder.Services.AddScoped<IUserQueries, UserQueries>();
 builder.Services.AddScoped<AuthenticationService>();
 builder.Services.AddScoped<CurrentUserService>();
 builder.Services.AddScoped<ConversationService>();
 builder.Services.AddScoped<MessageService>();
+builder.Services.AddScoped<ContactService>();
+builder.Services.AddScoped<BlockedUserService>();
+builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 builder.Services.AddDbContext<ContextDb>(options =>

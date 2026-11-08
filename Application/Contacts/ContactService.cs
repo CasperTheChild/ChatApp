@@ -127,5 +127,7 @@ public class ContactService
 
         await contactRepository
             .DeleteContactsAsync(userId, contactUserId);
+
+        await unitOfWork.SaveChangesAsync();
     }
 }

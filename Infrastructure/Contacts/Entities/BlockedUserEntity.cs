@@ -1,8 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Infrastructure.Contacts.Configurations;
+using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Contacts.Entities;
 
-[EntityTypeConfiguration(typeof(BlockedUserEntity))]
+[EntityTypeConfiguration(typeof(BlockedUserConfiguration))]
 public class BlockedUserEntity
 {
     public string UserId { get; set; } = null!;

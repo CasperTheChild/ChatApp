@@ -26,8 +26,6 @@ public class ContextDb
 
     public DbSet<MessageEntity> Messages { get; set; }
 
-    public DbSet<ContactListEntity> ContactLists { get; set; }
-
     public DbSet<ContactEntity> Contacts { get; set; }
 
     public DbSet<BlockedUserEntity> BlockedUsers { get; set; }
