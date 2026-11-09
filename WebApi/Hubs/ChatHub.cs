@@ -64,14 +64,24 @@ public class ChatHub : Hub
             .SendAsync("ReceiveDeletedMessage", messageDeleteDto);
     }
 
-    public async Task CreateConversation(ConversationCreateDto conversationDto)
+    public async Task CreateGroupConversation(ConversationCreateDto conversationDto)
     {
         var newConversation = await conversationService
-            .CreateConversation(conversationDto);
+            .CreateGroupConversationAsync(conversationDto);
 
         await Clients
             .Group(newConversation.ConversationId.ToString())
             .SendAsync("ReceiveConversation", newConversation);
+    }
+
+    public async Task CreateDirectConversation(string contactUserId)
+    {
+        var result = await conversationService
+            .CreateDirectConversationAsync(contactUserId);
+
+        await Clients
+            .Group(result.ConversationId.ToString())
+            .SendAsync("ReceiveConversation", result);
     }
 
     public async Task UpdateConversation(
@@ -79,7 +89,7 @@ public class ChatHub : Hub
         ConversationUpdateDto conversationDto)
     {
         var newConversation = await conversationService
-            .UpdateConversation(
+            .UpdateConversationAsync(
             conversationId, 
             conversationDto);
 

@@ -1,11 +1,13 @@
 ﻿using Application.Conversations.Dto;
+using Domain.Conversations;
 
 namespace Application.Conversations.Models;
 
 public record ConversationDto(
     Guid ConversationId,
     DateTime CreatedAt,
-    string Title,
-    string Description,
+    ConversationType ConversationType,
+    string? Title,
+    string? Description,
     List<ParticipantDto> Participants)
 { }

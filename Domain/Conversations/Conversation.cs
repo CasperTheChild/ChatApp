@@ -1,4 +1,6 @@
-﻿namespace Domain.Conversations;
+﻿using Domain.Common;
+
+namespace Domain.Conversations;
 
 public class Conversation
 {
@@ -10,31 +12,58 @@ public class Conversation
 
     public IReadOnlyList<Participant> Participants => participants;
 
-    public string Title { get; private set; }
+    public ConversationType Type { get; private set; }
 
-    public string Description { get; private set; }
+    public string? Title { get; private set; }
 
-    private readonly int MaxTitleLength = 50;
-    private readonly int MaxDescriptionLength = 200;
+    public string? Description { get; private set; }
+
+    private const int MaxTitleLength = 50;
+    private const int MaxDescriptionLength = 200;
 
     public Conversation(
         ConversationId conversationId,
         DateTime createdAt,
         List<Participant> participants,
-        string title,
-        string description)
+        ConversationType type,
+        string? title,
+        string? description)
     {
-        if (participants is null) 
-            throw new ArgumentNullException(nameof(participants));
+        ArgumentNullException.ThrowIfNull(participants);
 
-        ValidateTitle(title);
-        ValidateDescription(description);
+        if (!Enum.IsDefined(typeof(ConversationType), type))
+            throw new ArgumentOutOfRangeException(nameof(type));
+
+        if (participants.Any(p => p is null))
+            throw new ArgumentException(
+                "Participants cannot contain null values.",
+                nameof(participants));
+
+        if (participants.Select(p => p.UserId).Distinct().Count()
+            != participants.Count)
+            throw new DomainException("Duplicate participants.");
+
+        if (type == ConversationType.Direct && participants.Count != 2)
+            throw new DomainException(
+                "Direct conversations must have exactly two participants.");
+
+        if (type == ConversationType.Group)
+        {
+            ValidateTitle(title);
+            ValidateDescription(description);
+
+            Title = title!.Trim();
+            Description = description?.Trim();
+        }
+        else if (title != null || description != null)
+        {
+            throw new DomainException(
+                "Direct conversations cannot have group metadata.");
+        }
 
         ConversationId = conversationId;
         CreatedAt = createdAt;
-        Title = title.Trim();
-        Description = string.IsNullOrWhiteSpace(description) ?
-            string.Empty : description.Trim();
+        Type = type;
         this.participants.AddRange(participants);
     }
 
@@ -54,12 +83,34 @@ public class Conversation
         this.ConversationId = ConversationId.Generate();
         this.CreatedAt = DateTime.UtcNow;
         this.participants.Add(Participant.Create(userId));
+        this.Type = ConversationType.Group;
         this.Title = title;
         this.Description = description;
     }
 
+    private Conversation(
+        string userId,
+        string contactUserId)
+    {
+        if (string.IsNullOrWhiteSpace(userId))
+            throw new ArgumentException(
+                "UserId can not be empty",
+                nameof(userId));
+
+        if (string.IsNullOrWhiteSpace(contactUserId))
+            throw new ArgumentException(
+                "UserId can not be empty",
+                nameof(contactUserId));
+
+        this.ConversationId = ConversationId.Generate();
+        this.CreatedAt = DateTime.UtcNow;
+        this.participants.Add(Participant.Create(userId));
+        this.participants.Add(Participant.Create(contactUserId));
+        this.Type = ConversationType.Direct;
+    }
+
     // Domain methods
-    public static Conversation Create(
+    public static Conversation CreateGroupConversation(
         string userId, 
         string title, 
         string description)
@@ -67,6 +118,13 @@ public class Conversation
             userId, 
             title, 
             description);
+
+    public static Conversation CreateDirectConversation(
+        string userId,
+        string contactUserId)
+        => new Conversation(
+            userId,
+            contactUserId);
 
     public bool HasParticipant(string userId)
     {
@@ -88,6 +146,8 @@ public class Conversation
 
     public void AddParticipant(string userId)
     {
+        ValidateConversationType(nameof(AddParticipant));
+
         if (string.IsNullOrWhiteSpace(userId))
             throw new ArgumentException(
                 "UserId can not be empty", 
@@ -101,8 +161,33 @@ public class Conversation
         participants.Add(Participant.Create(userId));
     }
 
+    public void AddMultipleParticipants(IEnumerable<string> userIds)
+    {
+        ArgumentNullException.ThrowIfNull(userIds);
+
+        ValidateConversationType(nameof(AddMultipleParticipants));
+
+        if (userIds.Any(string.IsNullOrWhiteSpace))
+            throw new ArgumentException(
+                "UserIds cannot contain empty values.",
+                nameof(userIds));
+
+        if (userIds.Distinct().Count() != userIds.Count())
+            throw new DomainException(
+                "Duplicate participants are not allowed.");
+
+        if (userIds.Any(id => participants.Any(p => p.UserId == id)))
+            throw new DomainException(
+                "One or more users are already participants.");
+
+        foreach (var userId in userIds)
+            participants.Add(Participant.Create(userId));
+    }
+
     public void RemoveParticipant(string userId)
     {
+        ValidateConversationType(nameof(RemoveParticipant));
+
         if (string.IsNullOrWhiteSpace(userId))
             throw new ArgumentException(
                 "UserId can not be empty", 
@@ -118,8 +203,10 @@ public class Conversation
         participants.Remove(participant);
     }
 
-    public void Leave(string userId)
+    public void LeaveConversation(string userId)
     {
+        ValidateConversationType(nameof(LeaveConversation));
+
         if (string.IsNullOrWhiteSpace(userId))
             throw new ArgumentException(
                 "UserId can not be empty",
@@ -137,32 +224,30 @@ public class Conversation
 
     public void ChangeTitle(string title)
     {
-        if (string.IsNullOrWhiteSpace(title))
-            throw new ArgumentException(
-                "Title can not be empty", 
-                nameof(title));
+        ValidateConversationType(nameof(ChangeTitle));
 
-        Title = title;
+        ValidateTitle(title);
+
+        Title = title.Trim();
     }
 
     public void ChangeDescription(string description)
     {
-        if (description is null)
-            throw new ArgumentNullException(
-                nameof(description));
+        ValidateConversationType(nameof(ChangeDescription));
 
-        Description = description;
+        ValidateDescription(description);
+
+        Description = description.Trim();
     }
 
-    public static void ValidateTitle(string title)
+    private static void ValidateTitle(string? title)
     {
-
         if (string.IsNullOrWhiteSpace(title))
             throw new ArgumentException(
                 "Title can not be empty",
                 nameof(title));
 
-        if (title.Length > 50)
+        if (title.Length > MaxTitleLength)
             throw new ArgumentException(
                 "Title can not have more than 50 letters",
                 nameof(title));
@@ -170,12 +255,18 @@ public class Conversation
         return;
     }
 
-    public static void ValidateDescription(string description)
+    private static void ValidateDescription(string? description)
     {
-        if (description.Length > 200)
+        if (description?.Length > MaxDescriptionLength)
             throw new ArgumentException(
                 "Description can not have more than 200 letters",
                 nameof(description));
+    }
 
+    private void ValidateConversationType(string operation)
+    {
+        if (Type == ConversationType.Direct)
+            throw new DomainException(
+                $"This operationf of {operation} can not be handled in Direct chats");
     }
 }

@@ -1,4 +1,5 @@
-﻿using Application.Conversations.Dto;
+﻿using Application.Common.Dto;
+using Application.Conversations.Dto;
 using Application.Conversations.Exceptions;
 using Application.Conversations.Models;
 using Application.IAM;
@@ -23,12 +24,13 @@ public class ConversationService
         this.unitOfWork = unitOfWork;
     }
 
-    public async Task<ConversationDto> CreateConversation(ConversationCreateDto conversation)
+    public async Task<ConversationDto> CreateGroupConversationAsync(
+        ConversationCreateDto conversation)
     {
         var userId = currentUserService.GetCurrentUserId()
             ?? throw new UnauthorizedAccessException();
 
-        var domain = Conversation.Create(
+        var domain = Conversation.CreateGroupConversation(
             userId,
             conversation.Title,
             conversation.Description);
@@ -40,6 +42,7 @@ public class ConversationService
         return new ConversationDto(
             domain.ConversationId.Value,
             domain.CreatedAt,
+            domain.Type,
             domain.Title,
             domain.Description,
             domain.Participants
@@ -47,7 +50,32 @@ public class ConversationService
                 .ToList());
     }
 
-    public async Task<IEnumerable<ConversationDto>> GetConversations()
+    public async Task<ConversationDto> CreateDirectConversationAsync(
+        string contactUserId)
+    {
+        var userId = currentUserService.GetCurrentUserId()
+            ?? throw new UnauthorizedAccessException();
+
+        var domain = Conversation.CreateDirectConversation(
+            userId,
+            contactUserId);
+
+        conversationRepository.Add(domain);
+
+        await unitOfWork.SaveChangesAsync();
+
+        return new ConversationDto(
+            domain.ConversationId.Value,
+            domain.CreatedAt,
+            domain.Type,
+            domain.Title,
+            domain.Description,
+            domain.Participants
+                .Select(p => new ParticipantDto(p.UserId))
+                .ToList());
+    }
+
+    public async Task<IEnumerable<ConversationDto>> GetConversationsAsync()
     {
         var userId = currentUserService.GetCurrentUserId()
             ?? throw new UnauthorizedAccessException();
@@ -59,11 +87,17 @@ public class ConversationService
             .Select(c => new ConversationDto(
                 c.ConversationId.Value,
                 c.CreatedAt,
+                c.Type,
                 c.Title,
                 c.Description,
                 c.Participants
                     .Select(p => new ParticipantDto(p.UserId))
                     .ToList()));
+    }
+
+    public Task<PaginatedDto<ConversationDto>> GetPagedConversationsAsync()
+    {
+        throw new NotImplementedException();
     }
 
     public async Task<ConversationDto?> GetConversationByIdAsync(Guid conversationId)
@@ -73,6 +107,7 @@ public class ConversationService
         return new ConversationDto(
             domain.ConversationId.Value,
             domain.CreatedAt,
+            domain.Type,
             domain.Title,
             domain.Description,
             domain.Participants
@@ -80,7 +115,7 @@ public class ConversationService
                 .ToList());
     }
 
-    public async Task<ConversationDto?> UpdateConversation(
+    public async Task<ConversationDto?> UpdateConversationAsync(
         Guid conversationId,
         ConversationUpdateDto conversationDto)
     {
@@ -96,6 +131,7 @@ public class ConversationService
         return new ConversationDto(
             domain.ConversationId.Value,
             domain.CreatedAt,
+            domain.Type,
             domain.Title,
             domain.Description,
             domain.Participants
@@ -103,7 +139,7 @@ public class ConversationService
                 .ToList());
     }
 
-    public async Task AddParticipantToConversation(
+    public async Task AddParticipantToConversationAsync(
         Guid conversationId,
         ParticipantDto participant)
     {
@@ -116,7 +152,7 @@ public class ConversationService
         await unitOfWork.SaveChangesAsync();
     }
 
-    public async Task RemoveParticipantFromConversation(Guid conversationId, ParticipantDto participant)
+    public async Task RemoveParticipantFromConversationAsync(Guid conversationId, ParticipantDto participant)
     {
         var domain = await conversationRepository
             .GetConversationByIdAsync(conversationId);
@@ -128,7 +164,7 @@ public class ConversationService
         await unitOfWork.SaveChangesAsync();
     }
 
-    public async Task LeaveConversation(Guid conversationId)
+    public async Task LeaveConversationAsync(Guid conversationId)
     {
         var domain = await conversationRepository
             .GetConversationByIdAsync(conversationId);
@@ -142,7 +178,7 @@ public class ConversationService
         if (!domain.HasParticipant(userId))
             throw new ParticipantNotFoundException(userId, conversationId);
 
-        domain.Leave(userId);
+        domain.LeaveConversation(userId);
 
         await unitOfWork.SaveChangesAsync();
     }

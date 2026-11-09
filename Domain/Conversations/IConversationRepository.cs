@@ -1,8 +1,15 @@
-﻿namespace Domain.Conversations;
+﻿using Infrastructure.Common;
+
+namespace Domain.Conversations;
 
 public interface IConversationRepository
 {
     Task<IEnumerable<Conversation>> GetAllConversationByUserId(string userId);
+
+    Task<PageResult<Conversation>> GetAllConversationByUserIdAsync(
+        string userId,
+        int limit,
+        Guid? conversationId);
 
     Task<Conversation?> GetConversationByIdAsync(Guid id);
 

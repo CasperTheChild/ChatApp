@@ -20,13 +20,15 @@ public class ConversationsController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetConversations()
     {
-        return Ok(await conversationService.GetConversations());
+        return Ok(await conversationService.GetConversationsAsync());
     }
     
     [HttpGet("{conversationId:guid}")]
-    public async Task<IActionResult> GetConversationById(Guid conversationId)
+    public async Task<IActionResult> GetConversationById(
+        Guid conversationId)
     {
-        var result = await conversationService.GetConversationByIdAsync(conversationId);
+        var result = await conversationService
+            .GetConversationByIdAsync(conversationId);
 
         if (result is null)
             return NotFound();
@@ -34,38 +36,60 @@ public class ConversationsController : ControllerBase
         return Ok(result);
     }
 
-    [HttpPost]
-    public async Task<IActionResult> CreateConversation([FromBody] ConversationCreateDto conversation)
+    [HttpPost("group")]
+    public async Task<IActionResult> CreateGroupConversation(
+        [FromBody] ConversationCreateDto conversation)
     {
-        var result = await conversationService.CreateConversation(conversation);
+        var result = await conversationService
+            .CreateGroupConversationAsync(conversation);
+        return Ok(result);
+    }
+
+    [HttpPost("direct/{contactUserId}")]
+    public async Task<IActionResult> CreateDirectConversation(
+        string contactUserId) 
+    {
+        var result = await conversationService
+            .CreateDirectConversationAsync(contactUserId);
         return Ok(result);
     }
 
     [HttpPut("{conversationId:guid}")]
-    public async Task<IActionResult> UpdateConversation(Guid conversationId, [FromBody] ConversationUpdateDto conversation)
+    public async Task<IActionResult> UpdateConversation(
+        Guid conversationId, 
+        [FromBody] ConversationUpdateDto conversation)
     {
-        await conversationService.UpdateConversation(conversationId, conversation);
+        await conversationService
+            .UpdateConversationAsync(conversationId, conversation);
         return NoContent();
     }
 
     [HttpPost("{conversationId:guid}/add")]
-    public async Task<IActionResult> AddParticipant(Guid conversationId, [FromBody] ParticipantDto participantDto)
+    public async Task<IActionResult> AddParticipant(
+        Guid conversationId, 
+        [FromBody] ParticipantDto participantDto)
     {
-        await conversationService.AddParticipantToConversation(conversationId, participantDto);
+        await conversationService
+            .AddParticipantToConversationAsync(conversationId, participantDto);
         return NoContent();
     }
 
     [HttpPost("{conversationId:guid}/remove")]
-    public async Task<IActionResult> RemoveParticipant(Guid conversationId, [FromBody] ParticipantDto participant)
+    public async Task<IActionResult> RemoveParticipant(
+        Guid conversationId, 
+        [FromBody] ParticipantDto participant)
     {
-        await conversationService.RemoveParticipantFromConversation(conversationId, participant);
+        await conversationService
+            .RemoveParticipantFromConversationAsync(conversationId, participant);
         return NoContent();
     }
 
     [HttpPost("{conversationId:guid}/leave")]
-    public async Task<IActionResult> LeaveConversation(Guid conversationId)
+    public async Task<IActionResult> LeaveConversation(
+        Guid conversationId)
     {
-        await conversationService.LeaveConversation(conversationId);
+        await conversationService
+            .LeaveConversationAsync(conversationId);
         return NoContent();
     }
 }

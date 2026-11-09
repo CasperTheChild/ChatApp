@@ -1,4 +1,5 @@
-﻿using Infrastructure.Conversations.Configurations;
+﻿using Domain.Conversations;
+using Infrastructure.Conversations.Configurations;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Conversations.Entities;
@@ -10,9 +11,11 @@ public class ConversationEntity
 
     public DateTime CreatedAt { get; set; }
 
-    public string Title { get; set; } = null!;
+    public ConversationType ConversationType { get; set; }
 
-    public string Description { get; set; } = null!;
+    public string? Title { get; set; } = null!;
+
+    public string? Description { get; set; } = null!;
 
     public List<ParticipantEntity> Participants { get; set; } = new();
 }

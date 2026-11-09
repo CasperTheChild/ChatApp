@@ -2,10 +2,12 @@
 using Domain.Conversations;
 using Infrastructure.Conversations.Mappers;
 using Microsoft.EntityFrameworkCore;
+using Infrastructure.Common;
 
 namespace Infrastructure.Conversations.Repositories;
 
-public class ConversationRepository : IConversationRepository
+public class ConversationRepository
+    : IConversationRepository
 {
     private readonly ContextDb context;
 
@@ -38,6 +40,11 @@ public class ConversationRepository : IConversationRepository
             .ToListAsync();
 
         return result.Select(c => ConversationMapper.ToDomain(c));
+    }
+
+    public Task<PageResult<Conversation>> GetAllConversationByUserIdAsync(string userId, int limit, Guid? conversationId)
+    {
+        throw new NotImplementedException();
     }
 
     public async Task<Conversation?> GetConversationByIdAsync(Guid id)

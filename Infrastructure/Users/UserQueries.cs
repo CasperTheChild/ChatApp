@@ -22,6 +22,8 @@ public class UserQueries
         this.userManager = userManager;
     }
 
+    // Incorrect
+    // Needs to access contacts
     public Task<PaginatedDto<UserSearchDto>> GetSuggestedUsersAsync(
         string? cursor, 
         int limit)

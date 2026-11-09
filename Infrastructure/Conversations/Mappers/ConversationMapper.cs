@@ -12,6 +12,7 @@ public class ConversationMapper
             new ConversationId(entity.ConversationId),
             entity.CreatedAt,
             entity.Participants.Select(p => ParticipantMapper.ToDomain(p)).ToList(),
+            entity.ConversationType,
             entity.Title,
             entity.Description
         );
@@ -30,9 +31,10 @@ public class ConversationMapper
         {
             ConversationId = conversationId,
             CreatedAt = domain.CreatedAt,
+            Participants = participantEntities,
+            ConversationType = domain.Type,
             Title = domain.Title,
-            Description = domain.Description,
-            Participants = participantEntities
+            Description = domain.Description
         };
     }
 }

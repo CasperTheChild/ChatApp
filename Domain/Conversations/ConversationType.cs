@@ -1,0 +1,7 @@
+﻿namespace Domain.Conversations;
+
+public enum ConversationType
+{
+    Direct = 0,
+    Group = 1
+}
