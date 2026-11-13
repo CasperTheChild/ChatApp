@@ -5,6 +5,7 @@ using Domain.Conversations;
 using Infrastructure.Conversations.Entities;
 using Microsoft.Identity.Client;
 using Infrastructure.Contacts.Entities;
+using Infrastructure.Images.Entities;
 
 namespace Infrastructure.Persistence.Context;
 
@@ -29,4 +30,6 @@ public class ContextDb
     public DbSet<ContactEntity> Contacts { get; set; }
 
     public DbSet<BlockedUserEntity> BlockedUsers { get; set; }
+
+    public DbSet<ImageEntity> Images { get; set; }
 }
