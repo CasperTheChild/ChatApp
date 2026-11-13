@@ -46,4 +46,3 @@ const MessageInput = ({ conversationId }) => {
 }
 
 export default MessageInput
-

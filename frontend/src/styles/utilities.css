@@ -1,0 +1,22 @@
+.w-33 {
+    width: 33.333333%;
+}
+
+.w-66 {
+    width: 66.666667%;
+}
+
+.btn-subtle-primary {
+    background-color: var(--bs-primary-bg-subtle);
+    color: var(--bs-primary-text-emphasis);
+    border: 1px solid var(--bs-primary-border-subtle);
+}
+
+.btn-subtle-primary:hover {
+    background-color: var(--bs-primary);
+    color: white;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+}
